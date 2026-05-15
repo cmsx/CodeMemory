@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",
-    "better-sqlite3": "latest",
     "chokidar": "latest",
     "commander": "latest",
     "gray-matter": "latest",
@@ -23,7 +22,6 @@
     "web-tree-sitter": "latest"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "latest",
     "@types/node": "latest",
     "@types/react": "latest",
     "tsx": "latest",

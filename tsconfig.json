@@ -9,6 +9,7 @@
     "strict": true,
     "verbatimModuleSyntax": true,
     "esModuleInterop": true,
+    "types": ["node"],
     "skipLibCheck": true,
     "declaration": true,
     "sourceMap": true,
