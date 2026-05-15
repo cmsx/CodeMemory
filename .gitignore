@@ -1,0 +1,17 @@
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+/.codex
+/.cursor/
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/node_modules
+/vendor
+/plans
+_ide_helper.php
+Thumbs.db
