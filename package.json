@@ -1,0 +1,33 @@
+{
+  "name": "code-memory-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "bin": { "cms": "./dist/cli/index.js" },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "tsx src/cli/index.ts",
+    "mcp": "tsx src/mcp/server.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest",
+    "better-sqlite3": "latest",
+    "chokidar": "latest",
+    "commander": "latest",
+    "gray-matter": "latest",
+    "ink": "latest",
+    "react": "latest",
+    "web-tree-sitter": "latest"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "tsx": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  }
+}

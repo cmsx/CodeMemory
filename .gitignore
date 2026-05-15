@@ -13,5 +13,8 @@
 /node_modules
 /vendor
 /plans
+/dist
+/.memory/index.db
+/.memory/*.lock
 _ide_helper.php
 Thumbs.db
