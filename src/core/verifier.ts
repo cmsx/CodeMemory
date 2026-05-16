@@ -23,11 +23,21 @@ function parseEnvKeys(projectRoot: string): Set<string> {
   }
 }
 
-function parseSymbolUri(uri: string): { file: string; name: string } | null {
+function parseSymbolUri(
+  uri: string
+): { file: string; parent: string | null; name: string } | null {
   const payload = uri.slice("symbol:".length);
   const idx = payload.lastIndexOf("::");
   if (idx < 0) return null;
-  return { file: payload.slice(0, idx), name: payload.slice(idx + 2) };
+  const file = payload.slice(0, idx);
+  const symbol = payload.slice(idx + 2);
+  // Dotted form `Parent.Member` — symbol_index stores parent and bare name
+  // in separate columns.
+  const dot = symbol.lastIndexOf(".");
+  if (dot > 0) {
+    return { file, parent: symbol.slice(0, dot), name: symbol.slice(dot + 1) };
+  }
+  return { file, parent: null, name: symbol };
 }
 
 export function verifyAnchors(
@@ -62,6 +72,9 @@ export function verifyAnchors(
   const symbolStmt = db.prepare(
     "SELECT 1 FROM symbol_index WHERE file = ? AND name = ? LIMIT 1"
   );
+  const symbolWithParentStmt = db.prepare(
+    "SELECT 1 FROM symbol_index WHERE file = ? AND parent = ? AND name = ? LIMIT 1"
+  );
 
   const updates: { uri: string; status: "ok" | "stale" }[] = [];
 
@@ -79,7 +92,10 @@ export function verifyAnchors(
       if (!parsed) {
         status = "stale";
       } else {
-        const hit = symbolStmt.get(parsed.file, parsed.name);
+        const hit =
+          parsed.parent !== null
+            ? symbolWithParentStmt.get(parsed.file, parsed.parent, parsed.name)
+            : symbolStmt.get(parsed.file, parsed.name);
         status = hit ? "ok" : "stale";
       }
     } else if (type === "entity") {

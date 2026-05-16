@@ -160,6 +160,11 @@ describe("search", () => {
     const out = await run("search", "note", "--anchor", "file:src/main.ts");
     expect(out).toContain("2024-01-01-alpha");
   });
+
+  it("runs anchor-only search with no text query", async () => {
+    const out = await run("search", "--anchor", "file:src/main.ts");
+    expect(out).toContain("2024-01-01-alpha");
+  });
 });
 
 describe("verify", () => {

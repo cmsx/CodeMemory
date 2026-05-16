@@ -108,6 +108,46 @@ describe("symbol: anchor", () => {
     expect(anchorStatus("symbol:src/foo.ts::missing")).toBe("stale");
   });
 
+  it("resolves dotted Parent.Member form against parent + name columns", () => {
+    const { notesDir, projectRoot } = setup();
+    db.prepare(
+      "INSERT INTO symbol_index (file, name, kind, parent, start_line, end_line) VALUES (?,?,?,?,?,?)"
+    ).run("src/wizard.ts", "validateStep", "method", "StepValidator", 10, 20);
+    writeNoteIndexed(
+      db,
+      notesDir,
+      note([
+        { uri: "symbol:src/wizard.ts::StepValidator.validateStep", weight: "core" },
+      ])
+    );
+
+    verifyAnchors(db, projectRoot);
+
+    expect(anchorStatus("symbol:src/wizard.ts::StepValidator.validateStep")).toBe(
+      "ok"
+    );
+  });
+
+  it("marks dotted form stale when method exists under a different parent", () => {
+    const { notesDir, projectRoot } = setup();
+    db.prepare(
+      "INSERT INTO symbol_index (file, name, kind, parent, start_line, end_line) VALUES (?,?,?,?,?,?)"
+    ).run("src/wizard.ts", "validateStep", "method", "OtherClass", 10, 20);
+    writeNoteIndexed(
+      db,
+      notesDir,
+      note([
+        { uri: "symbol:src/wizard.ts::StepValidator.validateStep", weight: "core" },
+      ])
+    );
+
+    verifyAnchors(db, projectRoot);
+
+    expect(anchorStatus("symbol:src/wizard.ts::StepValidator.validateStep")).toBe(
+      "stale"
+    );
+  });
+
   it("marks stale when uri has no :: separator", () => {
     const { notesDir, projectRoot } = setup();
     // anchorType() only checks the type prefix; symbol:badpath is valid type-wise

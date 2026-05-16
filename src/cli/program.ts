@@ -142,14 +142,14 @@ export function buildProgram(): Command {
   program
     .command("search")
     .description("search notes (ranked)")
-    .argument("<query>", "text query")
+    .argument("[query]", "text query (optional for anchor-only search)")
     .option("--anchor <uri>", "anchor filter (repeatable)", collect, [] as string[])
     .option("--context <uri>", "context anchor (repeatable)", collect, [] as string[])
     .option("--archived", "include outdated notes")
     .option("--limit <n>", "result limit", (v) => parseInt(v, 10), 20)
     .action(
       async (
-        query: string,
+        query: string | undefined,
         opts: {
           anchor: string[];
           context: string[];
