@@ -200,24 +200,31 @@ async function extractSymbols(relPath: string, source: string): Promise<SymbolRo
   return rows;
 }
 
-const ALWAYS_SKIP = new Set([".git", ".memory"]);
+export const ALWAYS_SKIP = new Set([".git", ".memory"]);
 
-function listCodeFiles(projectRoot: string): string[] {
+export function createIgnoreFilter(projectRoot: string): (rel: string) => boolean {
   const gitignorePath = join(projectRoot, ".gitignore");
   const gitignoreContent = existsSync(gitignorePath)
     ? readFileSync(gitignorePath, "utf8")
     : "";
   const ig = ignore().add(gitignoreContent);
+  return (rel: string): boolean => {
+    if (!rel) return false;
+    const first = rel.split("/")[0];
+    if (ALWAYS_SKIP.has(first)) return true;
+    return ig.ignores(rel);
+  };
+}
 
+function listCodeFiles(projectRoot: string): string[] {
+  const shouldIgnore = createIgnoreFilter(projectRoot);
   const results: string[] = [];
 
   function walk(absDir: string): void {
     for (const entry of readdirSync(absDir, { withFileTypes: true })) {
-      if (ALWAYS_SKIP.has(entry.name)) continue;
       const abs = join(absDir, entry.name);
-      // POSIX-relative from projectRoot
       const rel = relative(projectRoot, abs).replace(/\\/g, "/");
-      if (rel && ig.ignores(rel)) continue;
+      if (shouldIgnore(rel)) continue;
       if (entry.isDirectory()) {
         walk(abs);
       } else if (entry.isFile()) {

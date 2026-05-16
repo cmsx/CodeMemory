@@ -2,6 +2,7 @@ import { createServer as createHttpServer, type IncomingMessage, type ServerResp
 import { fileURLToPath } from "node:url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { startWatchers } from "../core/watcher.js";
 import type { McpCtx } from "./context.js";
 import { openMcp, reconcileAll } from "./context.js";
 import { registerTools } from "./tools.js";
@@ -67,14 +68,22 @@ async function main(): Promise<void> {
   const ctx = openMcp();
   await reconcileAll(ctx);
 
+  const watchers = await startWatchers({
+    db: ctx.db,
+    projectRoot: ctx.projectRoot,
+    memoryDir: ctx.memoryDir,
+    notesDir: ctx.notesDir,
+  });
+
   const httpServer = createMcpHttpServer(ctx);
 
-  process.on("SIGTERM", () => {
+  const shutdown = async () => {
+    await watchers.close();
     httpServer.close(() => { ctx.db.close(); process.exit(0); });
-  });
-  process.on("SIGINT", () => {
-    httpServer.close(() => { ctx.db.close(); process.exit(0); });
-  });
+  };
+
+  process.on("SIGTERM", () => { shutdown().catch(console.error); });
+  process.on("SIGINT", () => { shutdown().catch(console.error); });
 
   const port = Number(process.env.CMS_PORT ?? 8765);
   httpServer.listen(port, "0.0.0.0", () => {
