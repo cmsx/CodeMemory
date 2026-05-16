@@ -1,0 +1,10 @@
+# Build output and dependencies
+node_modules/
+dist/
+
+# Derived index — never committed
+.memory/index.db
+.memory/*.lock
+
+# NOTE: .env is normally git-ignored, but this fixture intentionally
+# tracks it as test data for env: anchor verification.
