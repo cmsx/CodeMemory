@@ -3,8 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24" },
-  "bin": { "cms": "./dist/cli/index.js" },
+  "engines": {
+    "node": ">=24"
+  },
+  "bin": {
+    "cms": "./dist/cli/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
@@ -17,9 +21,11 @@
     "chokidar": "latest",
     "commander": "latest",
     "gray-matter": "latest",
+    "ignore": "^7.0.5",
     "ink": "latest",
     "react": "latest",
-    "web-tree-sitter": "latest"
+    "tree-sitter-wasms": "^0.1.13",
+    "web-tree-sitter": "^0.22.6"
   },
   "devDependencies": {
     "@types/node": "latest",
