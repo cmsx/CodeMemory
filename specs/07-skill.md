@@ -1,6 +1,8 @@
 # Code Memory Service — скилл
 
-Скилл — markdown-инструкция на стороне Клода (`.claude/skills/code-memory/`).
+Скилл — файл `SKILL.md` на стороне Клода (`.claude/skills/code-memory/`)
+с YAML-frontmatter (`name` + `description`-триггер автозагрузки) и
+markdown-телом инструкции.
 Сервис даёт *инструменты*; скилл учит Клода **когда** ими пользоваться и **как**
 оформлять capture. Без скилла инструменты есть, но не вызываются вовремя.
 

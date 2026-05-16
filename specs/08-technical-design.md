@@ -7,8 +7,9 @@
 
 - **TypeScript на Node.js 24.**
 - **MCP** — официальный SDK (`@modelcontextprotocol/sdk`), транспорт **HTTP**.
-- **SQLite** — `better-sqlite3`: синхронный (удобно для CLI и stdio-сервера),
-  зрелый, FTS5 в комплекте. Альтернатива — встроенный `node:sqlite`.
+- **SQLite** — встроенный `node:sqlite`: синхронный (удобно для CLI и
+  HTTP-сервера), без нативных бинарников — собирается кросс-платформенно,
+  FTS5 в комплекте.
 - **tree-sitter** — `web-tree-sitter` (WASM, без нативной сборки под каждую
   платформу) плюс WASM-грамматики нужных языков.
 - **File watching** — `chokidar`, два независимых watcher'а.
