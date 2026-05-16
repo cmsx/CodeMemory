@@ -6,6 +6,7 @@ import {
   readEntities,
   writeEntities,
 } from "./entity-store.js";
+import { withLock } from "./lock.js";
 
 export function reconcileEntities(db: DatabaseSync, memoryDir: string): void {
   const entities = readEntities(memoryDir);
@@ -30,21 +31,23 @@ export function createEntity(db: DatabaseSync, memoryDir: string, entity: Entity
   if (!entity.description.trim()) {
     throw new EntityParseError(`entity "${entity.name}" has empty description`);
   }
-  const existing = readEntities(memoryDir);
-  if (existing.some((e) => e.name === entity.name)) {
-    throw new Error(`entity "${entity.name}" already exists`);
-  }
-  const next = [...existing, entity];
-  const insert = db.prepare("INSERT INTO entities (name, description) VALUES (?,?)");
-  db.exec("BEGIN");
-  try {
-    insert.run(entity.name, entity.description);
-    writeEntities(memoryDir, next);
-    db.exec("COMMIT");
-  } catch (e) {
-    db.exec("ROLLBACK");
-    throw e;
-  }
+  withLock(memoryDir, () => {
+    const existing = readEntities(memoryDir);
+    if (existing.some((e) => e.name === entity.name)) {
+      throw new Error(`entity "${entity.name}" already exists`);
+    }
+    const next = [...existing, entity];
+    const insert = db.prepare("INSERT INTO entities (name, description) VALUES (?,?)");
+    db.exec("BEGIN");
+    try {
+      insert.run(entity.name, entity.description);
+      writeEntities(memoryDir, next);
+      db.exec("COMMIT");
+    } catch (e) {
+      db.exec("ROLLBACK");
+      throw e;
+    }
+  });
 }
 
 export function entityExists(db: DatabaseSync, name: string): boolean {
