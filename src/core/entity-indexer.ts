@@ -50,6 +50,56 @@ export function createEntity(db: DatabaseSync, memoryDir: string, entity: Entity
   });
 }
 
+export function updateEntity(
+  db: DatabaseSync,
+  memoryDir: string,
+  name: string,
+  description: string,
+): void {
+  if (!description.trim()) {
+    throw new EntityParseError(`entity "${name}" has empty description`);
+  }
+  withLock(memoryDir, () => {
+    const existing = readEntities(memoryDir);
+    if (!existing.some((e) => e.name === name)) {
+      throw new Error(`entity "${name}" not found`);
+    }
+    const next = existing.map((e) => (e.name === name ? { name, description } : e));
+    db.exec("BEGIN");
+    try {
+      db.prepare("UPDATE entities SET description = ? WHERE name = ?").run(description, name);
+      writeEntities(memoryDir, next);
+      db.exec("COMMIT");
+    } catch (e) {
+      db.exec("ROLLBACK");
+      throw e;
+    }
+  });
+}
+
+export function removeEntity(
+  db: DatabaseSync,
+  memoryDir: string,
+  name: string,
+): void {
+  withLock(memoryDir, () => {
+    const existing = readEntities(memoryDir);
+    if (!existing.some((e) => e.name === name)) {
+      throw new Error(`entity "${name}" not found`);
+    }
+    const next = existing.filter((e) => e.name !== name);
+    db.exec("BEGIN");
+    try {
+      db.prepare("DELETE FROM entities WHERE name = ?").run(name);
+      writeEntities(memoryDir, next);
+      db.exec("COMMIT");
+    } catch (e) {
+      db.exec("ROLLBACK");
+      throw e;
+    }
+  });
+}
+
 export function entityExists(db: DatabaseSync, name: string): boolean {
   return db.prepare("SELECT 1 FROM entities WHERE name = ?").get(name) !== undefined;
 }

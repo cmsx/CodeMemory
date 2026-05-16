@@ -9,6 +9,7 @@ import { LockTimeoutError, withLock } from "../src/core/lock.js";
 import {
   UnregisteredEntityError,
   createNote,
+  deleteNote,
   makeNoteId,
   renameAnchor,
   slugify,
@@ -325,5 +326,50 @@ describe("withLock", () => {
     ).toThrow(LockTimeoutError);
     // cleanup so afterEach rmSync works cleanly
     rmSync(lockPath, { force: true });
+  });
+});
+
+describe("deleteNote", () => {
+  let dir: string;
+  let db: DatabaseSync;
+
+  afterEach(() => {
+    db.close();
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  function setup() {
+    dir = mkdtempSync(join(tmpdir(), "cms-del-"));
+    db = openIndex(join(dir, "index.db"));
+    return { memoryDir: dir, notesDir: join(dir, "notes") };
+  }
+
+  it("removes .md file and index rows", () => {
+    const { memoryDir, notesDir } = setup();
+    const note = createNote(db, memoryDir, "To delete", BODY, ANCHORS, "current", "2024-01-10");
+    const id = note.id;
+    expect(existsSync(join(notesDir, id + ".md"))).toBe(true);
+
+    const deleted = deleteNote(db, memoryDir, id);
+    expect(deleted).toBe(true);
+    expect(existsSync(join(notesDir, id + ".md"))).toBe(false);
+    expect(db.prepare("SELECT 1 FROM notes WHERE id = ?").get(id)).toBeUndefined();
+    expect(db.prepare("SELECT 1 FROM anchors WHERE note_id = ?").get(id)).toBeUndefined();
+    expect(db.prepare("SELECT 1 FROM notes_fts WHERE id = ?").get(id)).toBeUndefined();
+  });
+
+  it("is idempotent — returns false for non-existent note", () => {
+    const { memoryDir } = setup();
+    expect(deleteNote(db, memoryDir, "no-such-note")).toBe(false);
+  });
+
+  it("does not affect other notes", () => {
+    const { memoryDir } = setup();
+    const n1 = createNote(db, memoryDir, "Keep this", BODY, ANCHORS, "current", "2024-01-01");
+    const n2 = createNote(db, memoryDir, "Delete this", BODY, ANCHORS, "current", "2024-01-02");
+    deleteNote(db, memoryDir, n2.id);
+    expect(
+      db.prepare("SELECT 1 FROM notes WHERE id = ?").get(n1.id),
+    ).toBeDefined();
   });
 });

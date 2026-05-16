@@ -4,7 +4,13 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import { openIndex } from "../src/core/index-layer.js";
-import { createEntity, entityExists, reconcileEntities } from "../src/core/entity-indexer.js";
+import {
+  createEntity,
+  entityExists,
+  reconcileEntities,
+  removeEntity,
+  updateEntity,
+} from "../src/core/entity-indexer.js";
 import {
   type Entity,
   EntityParseError,
@@ -197,6 +203,64 @@ describe("entity-indexer", () => {
     it("returns false for unknown entity", () => {
       const { memoryDir } = setup();
       expect(entityExists(db, "Order")).toBe(false);
+    });
+  });
+
+  describe("updateEntity", () => {
+    function seed() {
+      const { memoryDir } = setup();
+      createEntity(db, memoryDir, { name: "Cart", description: "Pre-checkout." });
+      return { memoryDir };
+    }
+
+    it("updates description in .md and SQLite", () => {
+      const { memoryDir } = seed();
+      updateEntity(db, memoryDir, "Cart", "New description.");
+      const entities = readEntities(memoryDir);
+      expect(entities.find((e) => e.name === "Cart")?.description).toBe("New description.");
+      const row = db
+        .prepare("SELECT description FROM entities WHERE name = ?")
+        .get("Cart") as { description: string };
+      expect(row.description).toBe("New description.");
+    });
+
+    it("throws for unknown entity", () => {
+      const { memoryDir } = seed();
+      expect(() => updateEntity(db, memoryDir, "NoSuch", "X")).toThrow("not found");
+    });
+
+    it("throws for empty description", () => {
+      const { memoryDir } = seed();
+      expect(() => updateEntity(db, memoryDir, "Cart", "   ")).toThrow();
+    });
+  });
+
+  describe("removeEntity", () => {
+    function seed() {
+      const { memoryDir } = setup();
+      createEntity(db, memoryDir, { name: "Cart", description: "Pre-checkout." });
+      createEntity(db, memoryDir, { name: "Order", description: "Purchase." });
+      return { memoryDir };
+    }
+
+    it("removes entity from .md and SQLite", () => {
+      const { memoryDir } = seed();
+      removeEntity(db, memoryDir, "Cart");
+      const entities = readEntities(memoryDir);
+      expect(entities.find((e) => e.name === "Cart")).toBeUndefined();
+      expect(db.prepare("SELECT 1 FROM entities WHERE name = ?").get("Cart")).toBeUndefined();
+    });
+
+    it("leaves other entities intact", () => {
+      const { memoryDir } = seed();
+      removeEntity(db, memoryDir, "Cart");
+      const entities = readEntities(memoryDir);
+      expect(entities.find((e) => e.name === "Order")).toBeDefined();
+    });
+
+    it("throws for unknown entity", () => {
+      const { memoryDir } = seed();
+      expect(() => removeEntity(db, memoryDir, "NoSuch")).toThrow("not found");
     });
   });
 });

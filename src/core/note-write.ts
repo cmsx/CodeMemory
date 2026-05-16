@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import {
@@ -9,7 +9,7 @@ import {
   listNotes,
   readNote,
 } from "./note-store.js";
-import { writeNoteIndexed } from "./note-indexer.js";
+import { removeNoteFromIndex, writeNoteIndexed } from "./note-indexer.js";
 import { entityExists } from "./entity-indexer.js";
 import { type LockOpts, withLock } from "./lock.js";
 
@@ -108,6 +108,33 @@ export function updateNote(
       if (update.anchors) validateAnchors(db, next.anchors);
       writeNoteIndexed(db, notesDir, next);
       return next;
+    },
+    opts,
+  );
+}
+
+export function deleteNote(
+  db: DatabaseSync,
+  memoryDir: string,
+  id: string,
+  opts?: LockOpts,
+): boolean {
+  const notesDir = join(memoryDir, "notes");
+  return withLock(
+    memoryDir,
+    () => {
+      const target = join(notesDir, id + ".md");
+      if (!existsSync(target)) return false;
+      db.exec("BEGIN");
+      try {
+        removeNoteFromIndex(db, id);
+        unlinkSync(target);
+        db.exec("COMMIT");
+      } catch (e) {
+        db.exec("ROLLBACK");
+        throw e;
+      }
+      return true;
     },
     opts,
   );

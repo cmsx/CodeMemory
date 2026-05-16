@@ -27,7 +27,7 @@ function indexNote(db: DatabaseSync, note: Note, hash: string): void {
   );
 }
 
-function removeNoteFromIndex(db: DatabaseSync, id: string): void {
+export function removeNoteFromIndex(db: DatabaseSync, id: string): void {
   db.prepare("DELETE FROM notes WHERE id = ?").run(id);
   db.prepare("DELETE FROM notes_fts WHERE id = ?").run(id);
 }
