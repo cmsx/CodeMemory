@@ -13,5 +13,10 @@ RUN npm run build
 #   rw на .memory/, ro на остальное.
 ENV CMS_PROJECT_ROOT=/project
 
-# MCP-клиент поднимает сервер по stdio.
-ENTRYPOINT ["node", "dist/mcp/server.js"]
+# Порт MCP-HTTP-сервера. Сервер (шаг 12) читает CMS_PORT с этим дефолтом.
+ENV CMS_PORT=8765
+EXPOSE 8765
+
+# Долгоживущий сервис: постоянный MCP-HTTP-сервер.
+# CLI вызывается отдельно через `docker compose exec memory cms <команда>`.
+CMD ["node", "dist/mcp/server.js"]
