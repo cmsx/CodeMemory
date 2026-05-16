@@ -387,5 +387,10 @@ export function buildProgram(): Command {
 
   program.addCommand(entityCmd);
 
+  program.action(async () => {
+    const { runTui } = await import("./tui/run.js");
+    await runTui();
+  });
+
   return program;
 }

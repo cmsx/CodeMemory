@@ -31,6 +31,7 @@
   "devDependencies": {
     "@types/node": "latest",
     "@types/react": "latest",
+    "ink-testing-library": "^4.0.0",
     "tsx": "latest",
     "typescript": "latest",
     "vitest": "latest"
