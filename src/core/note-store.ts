@@ -25,6 +25,15 @@ const STATUSES = new Set<string>(["current", "outdated", "draft"]);
 const WEIGHTS = new Set<string>(["critical", "core", "supporting", "incidental"]);
 const ANCHOR_TYPES = new Set<string>(["file", "symbol", "entity", "env"]);
 
+export function anchorType(uri: string): AnchorType {
+  const colonIdx = uri.indexOf(":");
+  const t = colonIdx >= 0 ? uri.slice(0, colonIdx) : "";
+  if (!ANCHOR_TYPES.has(t)) {
+    throw new Error(`invalid anchor type "${t}" in uri "${uri}"`);
+  }
+  return t as AnchorType;
+}
+
 export class NoteParseError extends Error {
   constructor(file: string, reason: string) {
     super(`note ${file}: ${reason}`);
@@ -84,10 +93,12 @@ export function parseNote(filename: string, raw: string): Note {
     if (!WEIGHTS.has(a["weight"] as string)) {
       throw new NoteParseError(filename, `invalid anchor weight "${a["weight"]}"`);
     }
-    const colonIdx = (a["uri"] as string).indexOf(":");
-    const anchorType = colonIdx >= 0 ? (a["uri"] as string).slice(0, colonIdx) : "";
-    if (!ANCHOR_TYPES.has(anchorType)) {
-      throw new NoteParseError(filename, `invalid anchor type "${anchorType}" in uri "${a["uri"]}"`);
+    try {
+      anchorType(a["uri"] as string);
+    } catch {
+      const colonIdx = (a["uri"] as string).indexOf(":");
+      const t = colonIdx >= 0 ? (a["uri"] as string).slice(0, colonIdx) : "";
+      throw new NoteParseError(filename, `invalid anchor type "${t}" in uri "${a["uri"]}"`);
     }
     anchors.push({ uri: a["uri"] as string, weight: a["weight"] as AnchorWeight });
   }
