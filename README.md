@@ -51,8 +51,16 @@ memory-service — постоянный контейнер в `docker-compose.ym
 Репозиторий монтируется целиком `ro`, поверх — более специфичный `rw`-mount
 на `.memory/`. Блок коммитится в проект — память «приезжает» вместе с ним.
 
-`.memory/*.md` и `entities.md` — в git целевого проекта; `index.db` и lock-файл
-— в его `.gitignore` (`index.db` полностью пересобираем).
+`.memory/*.md` и `entities.md` — в git целевого проекта; производный индекс
+и lock-файл — в его `.gitignore`. SQLite работает в режиме WAL, поэтому рядом
+с `index.db` появляются sidecar-файлы `index.db-wal` / `index.db-shm` — их тоже
+не коммитят. Добавьте в `.gitignore`:
+
+```gitignore
+# code-memory-service — производный индекс и lock
+.memory/index.db*
+.memory/lock
+```
 
 ### 3. Запуск
 

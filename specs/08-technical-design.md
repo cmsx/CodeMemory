@@ -95,7 +95,8 @@
   приватного репозитория либо берётся из приватного Docker-реестра. Блок
   коммитится в проект — память «приезжает» вместе с ним.
 - CLI вызывается через `docker compose exec memory <команда>`.
-- `.memory/*.md` и `entities.md` — в git; `index.db` и lock-файл — в `.gitignore`.
+- `.memory/*.md` и `entities.md` — в git; `index.db` (вместе с WAL-sidecar'ами
+  `index.db-wal` / `index.db-shm`) и lock-файл — в `.gitignore`.
 
 ## Отложено
 
