@@ -9,6 +9,10 @@ COPY tsconfig.json ./
 COPY src ./src
 RUN npm run build
 
+# Регистрирует bin `cms` из package.json в $PATH — иначе
+# `docker compose exec memory cms` не находит исполняемый файл.
+RUN npm link
+
 # Корень индексируемого проекта монтируется снаружи (docker-compose):
 #   rw на .memory/, ro на остальное.
 ENV CMS_PROJECT_ROOT=/project
