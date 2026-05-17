@@ -229,6 +229,21 @@ describe("env: anchor", () => {
     expect(anchorStatus("env:MISSING_VAR")).toBe("stale");
   });
 
+  it("resolves ok when var present only in .env.example", () => {
+    const { notesDir, projectRoot } = setup();
+    writeFileSync(join(projectRoot, ".env"), "OTHER_VAR=x\n");
+    writeFileSync(join(projectRoot, ".env.example"), "LLM_EMBEDDING_DIMENSION=\n");
+    writeNoteIndexed(
+      db,
+      notesDir,
+      note([{ uri: "env:LLM_EMBEDDING_DIMENSION", weight: "core" }])
+    );
+
+    verifyAnchors(db, projectRoot);
+
+    expect(anchorStatus("env:LLM_EMBEDDING_DIMENSION")).toBe("ok");
+  });
+
   it("marks stale when .env does not exist", () => {
     const { notesDir, projectRoot } = setup();
     writeNoteIndexed(

@@ -71,7 +71,7 @@ Markdown с фиксированной структурой секций.
 | `file` | `file:<path>` | файловая система |
 | `symbol` | `symbol:<path>::<symbol>` | индекс символов |
 | `entity` | `entity:<Name>` | реестр сущностей |
-| `env` | `env:<VAR_NAME>` | парсинг `.env` |
+| `env` | `env:<VAR_NAME>` | парсинг `.env*` |
 
 **`weight`:**
 

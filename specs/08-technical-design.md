@@ -29,7 +29,7 @@
 - **Structural indexer** — tree-sitter; инкрементально по content hash.
 - **Search / ranking** — отсечка членства + `weight × idf × text_relevance`.
 - **Anchor verifier** — резолв якорей: `symbol`/`file` — SQL и stat,
-  `env` — парсинг `.env`, `entity` — реестр.
+  `env` — парсинг `.env*`, `entity` — реестр.
 - **Watchers** — два, с дебаунсом ~500 мс.
 
 ### MCP-сервер

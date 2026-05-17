@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 
@@ -8,19 +8,32 @@ export interface VerifyResult {
   stale: number;
 }
 
+// Resolves env: anchors against the union of keys across all .env* files.
+// .env alone is incomplete by design: it omits variables covered by config
+// defaults, which would mark a valid optional-override anchor as stale.
 function parseEnvKeys(projectRoot: string): Set<string> {
+  const keys = new Set<string>();
+  let entries: string[];
   try {
-    const raw = readFileSync(join(projectRoot, ".env"), "utf8");
-    const keys = new Set<string>();
+    entries = readdirSync(projectRoot);
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === "ENOENT") return keys;
+    throw e;
+  }
+  for (const name of entries) {
+    if (name !== ".env" && !name.startsWith(".env.")) continue;
+    let raw: string;
+    try {
+      raw = readFileSync(join(projectRoot, name), "utf8");
+    } catch {
+      continue;
+    }
     for (const line of raw.split("\n")) {
       const m = line.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=/);
       if (m) keys.add(m[1]);
     }
-    return keys;
-  } catch (e) {
-    if ((e as NodeJS.ErrnoException).code === "ENOENT") return new Set();
-    throw e;
   }
+  return keys;
 }
 
 function parseSymbolUri(

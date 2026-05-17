@@ -11,6 +11,8 @@ Communicate with the user in Russian. Write all note content (summary, body) in 
 
 This skill works two ways. **Ambiently it does reading only** — the search triggers below fire during normal work. **Capture is not ambient** — it runs only when `/mem` is invoked explicitly (by the user, or by `/work-step-done` / `/work-done`). Do not capture proactively; the plan workflow owns capture timing.
 
+You interact with the service **only through its MCP tools** (`search`, `get_notes`, `create_note`, `update_note`, `rename_anchor`, `create_entity`, `list_entities`, `list_symbols_in_file`). The service also ships a CLI, but it is operated by the user inside the service container — it is **not callable by you**. Do not look for it or try to run it.
+
 ## When to search — triggers
 
 - **Start of task planning** — call `list_entities` (domain map), then `search` by topic.
@@ -85,6 +87,8 @@ An authored announce line: what will make a future agent open this note in full.
 
 Anchor only a file/symbol substantively touched. One subject is usually anchored at several levels: `entity:Name`, `file:path`, `symbol:path#name`.
 
+An `env:` anchor resolves against the **union of all `.env*` files** (`.env`, `.env.example`, …) — a variable that appears only in `.env.example` (e.g. one with a default in a config file) still resolves. Pick `env:` whenever it is the semantically correct anchor; do not skip it fearing it will go `stale`.
+
 Weight — two axes:
 
 - **Centrality:** `core` (main work), `supporting` (substantially related), `incidental` (touched, not the point).
@@ -97,6 +101,8 @@ After renaming a symbol or file — **always** call `rename_anchor` with `old_ur
 ## Unregistered entity
 
 If `create_note` is rejected for an anchor on an unknown entity — suggest `create_entity` to the user with a short "what and why", repeat `create_note` after confirmation.
+
+To rename, re-describe, or remove a mistakenly-created entity, edit `.memory/entities.md` directly — the registry is a plain markdown file and the watcher reindexes it on save. There is no MCP tool for entity removal; do not study the service internals to find one.
 
 ## Knowledge provenance
 
