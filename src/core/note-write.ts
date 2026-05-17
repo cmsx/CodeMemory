@@ -26,6 +26,24 @@ export interface NoteUpdate {
   status?: NoteStatus;
 }
 
+// Soft signal, not a gate: a note anchored on a single axis is the most
+// common capture defect. The full anchor set is an authoring judgement and
+// is never forced — but axis *presence* is binary, so an empty axis is worth
+// flagging back at the moment of capture.
+export function anchorCoverageWarning(anchors: Anchor[]): string | null {
+  const types = new Set(anchors.map((a) => anchorType(a.uri)));
+  const hasConceptual = types.has("entity");
+  const hasImplementation = types.has("file") || types.has("symbol");
+  if (hasConceptual && hasImplementation) return null;
+  if (!hasConceptual && !hasImplementation) {
+    return "Note anchored on neither axis (no entity: and no file:/symbol: anchors) — under-anchored. Add entity: for every domain entity the note concerns and file:/symbol: for the code it centers on. See the anchor checklist in the mem skill.";
+  }
+  if (!hasConceptual) {
+    return "Note has no entity: anchor — the conceptual axis is the main search axis and cannot be derived from code. Add entity:Name for every domain entity this note concerns. See the anchor checklist in the mem skill.";
+  }
+  return "Note has no file:/symbol: anchor — the implementation axis is missing. Anchor the class/file itself, not only its methods. See the anchor checklist in the mem skill.";
+}
+
 function today(): string {
   return new Date().toISOString().slice(0, 10);
 }

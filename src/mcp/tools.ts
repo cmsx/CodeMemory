@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { search } from "../core/search.js";
 import { getNotes } from "../core/get-notes.js";
-import { createNote, updateNote, renameAnchor } from "../core/note-write.js";
+import { anchorCoverageWarning, createNote, updateNote, renameAnchor } from "../core/note-write.js";
 import { createEntity } from "../core/entity-indexer.js";
 import { readEntities } from "../core/entity-store.js";
 import { verifyAnchors } from "../core/verifier.js";
@@ -82,7 +82,8 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
         status ?? "current",
       );
       verifyAnchors(ctx.db, ctx.projectRoot, { uris: anchors.map((a) => a.uri) });
-      return json({ id: note.id });
+      const warning = anchorCoverageWarning(anchors);
+      return json(warning ? { id: note.id, warning } : { id: note.id });
     },
   );
 

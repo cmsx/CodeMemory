@@ -8,6 +8,7 @@ import { createEntity } from "../src/core/entity-indexer.js";
 import { LockTimeoutError, withLock } from "../src/core/lock.js";
 import {
   UnregisteredEntityError,
+  anchorCoverageWarning,
   createNote,
   deleteNote,
   makeNoteId,
@@ -371,5 +372,30 @@ describe("deleteNote", () => {
     expect(
       db.prepare("SELECT 1 FROM notes WHERE id = ?").get(n1.id),
     ).toBeDefined();
+  });
+});
+
+describe("anchorCoverageWarning", () => {
+  const c = (uri: string) => ({ uri, weight: "core" as const });
+
+  it("returns null when both axes are present", () => {
+    expect(
+      anchorCoverageWarning([c("entity:Order"), c("file:src/order.ts")]),
+    ).toBeNull();
+    expect(
+      anchorCoverageWarning([c("entity:Order"), c("symbol:src/order.ts::Order")]),
+    ).toBeNull();
+  });
+
+  it("warns when the conceptual axis is missing", () => {
+    expect(anchorCoverageWarning([c("file:src/order.ts")])).toMatch(/entity:/);
+  });
+
+  it("warns when the implementation axis is missing", () => {
+    expect(anchorCoverageWarning([c("entity:Order")])).toMatch(/file:\/symbol:/);
+  });
+
+  it("warns when only env: anchors are present (neither axis)", () => {
+    expect(anchorCoverageWarning([c("env:STRIPE_KEY")])).toMatch(/neither axis/);
   });
 });

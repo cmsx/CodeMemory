@@ -112,6 +112,27 @@ describe("tool shapes (InMemory)", () => {
     expect(r.id).toMatch(/^2\d{3}-\d{2}-\d{2}-new-note$/);
   });
 
+  it("create_note warns when anchors cover only one axis", async () => {
+    const r = await call("create_note", {
+      summary: "Single axis note",
+      body: "Body text",
+      anchors: [{ uri: "file:src/main.ts", weight: "core" }],
+    }) as { id: string; warning?: string };
+    expect(r.warning).toMatch(/entity:/);
+  });
+
+  it("create_note omits warning when both axes are anchored", async () => {
+    const r = await call("create_note", {
+      summary: "Both axes note",
+      body: "Body text",
+      anchors: [
+        { uri: "entity:Cart", weight: "core" },
+        { uri: "file:src/main.ts", weight: "core" },
+      ],
+    }) as { id: string; warning?: string };
+    expect(r.warning).toBeUndefined();
+  });
+
   it("update_note returns {id}", async () => {
     const r = await call("update_note", {
       id: "2024-01-01-alpha",

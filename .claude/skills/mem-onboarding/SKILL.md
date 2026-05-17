@@ -30,6 +30,16 @@ The source is fed in parts — it cannot all be absorbed in one pass. For each c
 3. Decide: `create_note` with `status: draft` (new knowledge), `update_note` (refine an existing one), or skip (already covered).
 4. Drop the raw chunk text before the next one.
 
+### Anchoring — both axes, every note
+
+Onboarding `create_note`s are the most under-anchored: the chunk loop is busy and the anchor discipline slips. It is the single most damaging defect — a note that never surfaces on search is dead weight. Before **every** `create_note`, walk the checklist:
+
+- **Conceptual — `entity:`.** Every domain entity the note concerns. The main search axis, invisible to any code-level search, and the most damaging to omit. A note carries `entity:Name` even if no file of that name was touched.
+- **Implementation — `file:` / `symbol:`.** The file/symbol the note centers on. Anchor the **class itself**, not only its methods — a class- or file-level search misses a note anchored only to `Service.methodA`.
+- **`env:`** — if an env variable is involved.
+
+One or two anchors all on a single axis is under-anchoring. `create_note` returns a `warning` field when an axis is empty — do not ignore it; fix the anchors and call again. Full discipline and weights — see the `mem` skill.
+
 **The store as working memory:** between chunks the raw text is dropped so it does not bleed into interpreting the next document. But notes from earlier chunks stay reachable via `search` with `include_drafts: true` — that is dedup instead of duplicates.
 
 ## 4. Review
