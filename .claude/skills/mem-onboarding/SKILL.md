@@ -26,11 +26,11 @@ Declare **starting entities**: suggest candidates from the code structure, the h
 The source is fed in parts — it cannot all be absorbed in one pass. For each chunk:
 
 1. Read the chunk, determine which entities and files it is about.
-2. `search` — are there already related notes.
+2. `search` with `include_drafts: true` — are there already related notes. The flag is required: notes from earlier chunks are `draft` and a default `search` will not return them.
 3. Decide: `create_note` with `status: draft` (new knowledge), `update_note` (refine an existing one), or skip (already covered).
 4. Drop the raw chunk text before the next one.
 
-**The store as working memory:** between chunks the raw text is dropped so it does not bleed into interpreting the next document. But notes from earlier chunks stay reachable via `search` — that is dedup instead of duplicates.
+**The store as working memory:** between chunks the raw text is dropped so it does not bleed into interpreting the next document. But notes from earlier chunks stay reachable via `search` with `include_drafts: true` — that is dedup instead of duplicates.
 
 ## 4. Review
 

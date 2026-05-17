@@ -146,6 +146,7 @@ export function buildProgram(): Command {
     .option("--anchor <uri>", "anchor filter (repeatable)", collect, [] as string[])
     .option("--context <uri>", "context anchor (repeatable)", collect, [] as string[])
     .option("--archived", "include outdated notes")
+    .option("--drafts", "include draft notes")
     .option("--limit <n>", "result limit", (v) => parseInt(v, 10), 20)
     .action(
       async (
@@ -154,6 +155,7 @@ export function buildProgram(): Command {
           anchor: string[];
           context: string[];
           archived?: boolean;
+          drafts?: boolean;
           limit: number;
         },
       ) => {
@@ -165,6 +167,7 @@ export function buildProgram(): Command {
             anchors: opts.anchor,
             context: opts.context,
             include_archived: opts.archived,
+            include_drafts: opts.drafts,
             limit: opts.limit,
           });
           console.log(renderSearchResult(result));

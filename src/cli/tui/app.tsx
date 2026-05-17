@@ -18,7 +18,7 @@ import {
   setCursor,
   buildDetailItems,
 } from "./navigation.js";
-import type { HistEntry, DetailItem } from "./navigation.js";
+import type { HistEntry, DetailItem, Loc } from "./navigation.js";
 import { NoteListView, NoteDetailView, TextPrompt, ConfirmPrompt } from "./views.js";
 
 type Mode = "normal" | "search" | "confirmDelete";
@@ -42,13 +42,30 @@ interface MissingView {
 
 type View = ListView | DetailView | MissingView;
 
-function loadView(ctx: CliCtx, entry: HistEntry): View {
+// Anchor-walk and in-TUI search mirror LLM retrieval — drafts and outdated
+// notes are hidden by default; the d/a toggles opt them back in.
+interface Filters {
+  showDrafts: boolean;
+  showArchived: boolean;
+}
+
+// Toggles only apply where retrieval is filtered; the "All notes" list always
+// shows every status regardless.
+function isFilterableLoc(loc: Loc): boolean {
+  return loc.kind === "searchResults" || loc.kind === "anchorNotes";
+}
+
+function loadView(ctx: CliCtx, entry: HistEntry, filters: Filters): View {
   const { loc } = entry;
   if (loc.kind === "noteList") {
     return { kind: "list", title: "All notes", rows: listAllNotes(ctx.db) };
   }
+  const searchOpts = {
+    include_archived: filters.showArchived,
+    include_drafts: filters.showDrafts,
+  };
   if (loc.kind === "searchResults") {
-    const result = search(ctx.db, { query: loc.query, include_archived: true });
+    const result = search(ctx.db, { query: loc.query, ...searchOpts });
     const rows: NoteRow[] = result.hits.map((h) => ({
       id: h.id,
       summary: h.summary,
@@ -57,7 +74,7 @@ function loadView(ctx: CliCtx, entry: HistEntry): View {
     return { kind: "list", title: `Search: ${loc.query}`, rows };
   }
   if (loc.kind === "anchorNotes") {
-    const result = search(ctx.db, { anchors: [loc.uri], include_archived: true });
+    const result = search(ctx.db, { anchors: [loc.uri], ...searchOpts });
     const rows: NoteRow[] = result.hits.map((h) => ({
       id: h.id,
       summary: h.summary,
@@ -84,13 +101,24 @@ function clamp(n: number, lo: number, hi: number): number {
 interface HintProps {
   mode: Mode;
   viewKind: string;
+  filterable: boolean;
+  filters: Filters;
 }
 
-function HintLine({ mode, viewKind }: HintProps) {
+function HintLine({ mode, viewKind, filterable, filters }: HintProps) {
   if (mode === "search") return <Text dimColor>Enter: confirm  Esc: cancel</Text>;
   if (mode === "confirmDelete") return <Text dimColor>y: confirm  n/Esc: cancel</Text>;
   if (viewKind === "detail") {
     return <Text dimColor>↑↓: select  Enter: follow  e: edit  d: delete  /: search  Esc: back  q: quit</Text>;
+  }
+  if (filterable) {
+    const d = filters.showDrafts ? "on" : "off";
+    const a = filters.showArchived ? "on" : "off";
+    return (
+      <Text dimColor>
+        ↑↓: move  Enter: open  d: drafts {d}  a: archived {a}  /: search  Esc: back  q: quit
+      </Text>
+    );
   }
   return <Text dimColor>↑↓: move  Enter: open  /: search  Esc: back  q: quit</Text>;
 }
@@ -107,9 +135,15 @@ export function App({ ctx }: AppProps) {
   const [searchInput, setSearchInput] = useState("");
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [editorError, setEditorError] = useState<string | null>(null);
+  const [showDrafts, setShowDrafts] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   const entry = top(history);
-  const view = useMemo(() => loadView(ctx, entry), [entry, refreshNonce]);
+  const filters: Filters = { showDrafts, showArchived };
+  const view = useMemo(
+    () => loadView(ctx, entry, filters),
+    [entry, refreshNonce, showDrafts, showArchived],
+  );
 
   useInput((input, key) => {
     setEditorError(null);
@@ -167,6 +201,12 @@ export function App({ ctx }: AppProps) {
       } else if (key.return && len > 0) {
         const row = view.rows[entry.cursor];
         setHistory((h) => navigate(h, { kind: "noteDetail", id: row.id }));
+      } else if (input === "d" && isFilterableLoc(entry.loc)) {
+        setShowDrafts((v) => !v);
+        setHistory((h) => setCursor(h, 0));
+      } else if (input === "a" && isFilterableLoc(entry.loc)) {
+        setShowArchived((v) => !v);
+        setHistory((h) => setCursor(h, 0));
       }
     } else if (view.kind === "detail") {
       const len = view.items.length;
@@ -216,7 +256,12 @@ export function App({ ctx }: AppProps) {
       )}
       {editorError && <Text color="red">{editorError}</Text>}
       <Text> </Text>
-      <HintLine mode={mode} viewKind={view.kind} />
+      <HintLine
+        mode={mode}
+        viewKind={view.kind}
+        filterable={view.kind === "list" && isFilterableLoc(entry.loc)}
+        filters={filters}
+      />
     </Box>
   );
 }

@@ -20,6 +20,7 @@ export interface SearchParams {
   query?: string;
   context?: string[];
   include_archived?: boolean;
+  include_drafts?: boolean;
   limit?: number;
 }
 
@@ -48,7 +49,9 @@ export function search(db: DatabaseSync, params: SearchParams): SearchResult {
   const anchors = params.anchors ?? [];
   const query = params.query?.trim() ?? "";
   const context = params.context ?? [];
-  const statuses = params.include_archived ? ["current", "outdated"] : ["current"];
+  const statuses = ["current"];
+  if (params.include_archived) statuses.push("outdated");
+  if (params.include_drafts) statuses.push("draft");
   const statusPlaceholders = statuses.map(() => "?").join(",");
 
   if (anchors.length === 0 && query === "") {

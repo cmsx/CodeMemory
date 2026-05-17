@@ -187,6 +187,88 @@ describe("TUI — search", () => {
   });
 });
 
+const STATUS_NOTE = (id: string, summary: string, status: string) => `\
+---
+id: ${id}
+summary: ${summary}
+status: ${status}
+created: 2024-01-01
+updated: 2024-01-01
+anchors:
+  - uri: file:src/main.ts
+    weight: core
+---
+
+${summary} body.
+`;
+
+describe("TUI — draft/archived toggles", () => {
+  it("d toggle reveals draft notes in search results", async () => {
+    writeFileSync(
+      join(tmpDir, ".memory", "notes", "note-draft.md"),
+      STATUS_NOTE("note-draft", "Zzdraft note", "draft"),
+    );
+    const ctx = openCli();
+    try {
+      reconcileNotes(ctx.db, ctx.notesDir);
+      const { lastFrame, stdin, unmount } = render(<App ctx={ctx} />);
+      await press(stdin, "/");
+      await press(stdin, "zzdraft");
+      await press(stdin, "\r");
+      expect(lastFrame() ?? "").not.toContain("Zzdraft note");
+      await press(stdin, "d");
+      const frame = lastFrame() ?? "";
+      expect(frame).toContain("Zzdraft note");
+      expect(frame).toContain("drafts on");
+      unmount();
+    } finally {
+      ctx.db.close();
+    }
+  });
+
+  it("a toggle reveals outdated notes in search results", async () => {
+    writeFileSync(
+      join(tmpDir, ".memory", "notes", "note-old.md"),
+      STATUS_NOTE("note-old", "Zzold note", "outdated"),
+    );
+    const ctx = openCli();
+    try {
+      reconcileNotes(ctx.db, ctx.notesDir);
+      const { lastFrame, stdin, unmount } = render(<App ctx={ctx} />);
+      await press(stdin, "/");
+      await press(stdin, "zzold");
+      await press(stdin, "\r");
+      expect(lastFrame() ?? "").not.toContain("Zzold note");
+      await press(stdin, "a");
+      const frame = lastFrame() ?? "";
+      expect(frame).toContain("Zzold note");
+      expect(frame).toContain("archived on");
+      unmount();
+    } finally {
+      ctx.db.close();
+    }
+  });
+
+  it("All notes list shows drafts without a toggle and hides the toggle hint", async () => {
+    writeFileSync(
+      join(tmpDir, ".memory", "notes", "note-draft.md"),
+      STATUS_NOTE("note-draft", "Zzdraft note", "draft"),
+    );
+    const ctx = openCli();
+    try {
+      reconcileNotes(ctx.db, ctx.notesDir);
+      const { lastFrame, unmount } = render(<App ctx={ctx} />);
+      const frame = lastFrame() ?? "";
+      expect(frame).toContain("Zzdraft note");
+      expect(frame).toContain("[draft]");
+      expect(frame).not.toContain("d: drafts");
+      unmount();
+    } finally {
+      ctx.db.close();
+    }
+  });
+});
+
 describe("TUI — [[id]] mentions", () => {
   it("opens note with [[id]] and shows Mentioned Notes section", async () => {
     const ctx = openCli();

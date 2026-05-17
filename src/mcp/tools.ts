@@ -26,11 +26,14 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
         query: z.string().optional(),
         context: z.array(z.string()).optional(),
         include_archived: z.boolean().optional(),
+        include_drafts: z.boolean().optional(),
         limit: z.number().int().positive().optional(),
       },
     },
-    async ({ anchors, query, context, include_archived, limit }) => {
-      return json(search(ctx.db, { anchors, query, context, include_archived, limit }));
+    async ({ anchors, query, context, include_archived, include_drafts, limit }) => {
+      return json(
+        search(ctx.db, { anchors, query, context, include_archived, include_drafts, limit }),
+      );
     },
   );
 

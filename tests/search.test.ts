@@ -282,7 +282,7 @@ describe("status filter", () => {
     expect(result.hits[0].status).toBe("outdated");
   });
 
-  it("draft note never visible", () => {
+  it("draft note hidden by default and under include_archived", () => {
     const notesDir = setup();
     const n = note({
       anchors: [{ uri: "file:src/draft.ts", weight: "core" }],
@@ -294,6 +294,50 @@ describe("status filter", () => {
     const r2 = search(db, { anchors: ["file:src/draft.ts"], include_archived: true });
     expect(r1.hits).toHaveLength(0);
     expect(r2.hits).toHaveLength(0);
+  });
+
+  it("draft note visible with include_drafts", () => {
+    const notesDir = setup();
+    const n = note({
+      anchors: [{ uri: "file:src/draft.ts", weight: "core" }],
+      status: "draft",
+    });
+    writeAll(notesDir, [n]);
+
+    const result = search(db, {
+      anchors: ["file:src/draft.ts"],
+      include_drafts: true,
+    });
+    expect(result.hits).toHaveLength(1);
+    expect(result.hits[0].status).toBe("draft");
+  });
+
+  it("include_drafts does not pull outdated; include_archived does not pull drafts", () => {
+    const notesDir = setup();
+    const draftN = note({
+      id: "2024-01-01-d",
+      anchors: [{ uri: "file:src/x.ts", weight: "core" }],
+      status: "draft",
+    });
+    const oldN = note({
+      id: "2024-01-01-o",
+      anchors: [{ uri: "file:src/x.ts", weight: "core" }],
+      status: "outdated",
+    });
+    writeAll(notesDir, [draftN, oldN]);
+
+    const drafts = search(db, { anchors: ["file:src/x.ts"], include_drafts: true });
+    expect(drafts.hits.map((h) => h.id)).toEqual([draftN.id]);
+
+    const archived = search(db, { anchors: ["file:src/x.ts"], include_archived: true });
+    expect(archived.hits.map((h) => h.id)).toEqual([oldN.id]);
+
+    const both = search(db, {
+      anchors: ["file:src/x.ts"],
+      include_drafts: true,
+      include_archived: true,
+    });
+    expect(both.hits.map((h) => h.id).sort()).toEqual([draftN.id, oldN.id]);
   });
 
   it("status field absent for current notes, present for outdated", () => {
