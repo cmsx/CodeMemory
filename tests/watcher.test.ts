@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import {
   mkdirSync,
   mkdtempSync,
@@ -45,6 +45,20 @@ describe("watcher", () => {
   let projectRoot: string;
   let db: DatabaseSync;
   let handle: WatcherHandle | null;
+
+  // Warm tree-sitter once: cold WASM init can exceed an individual test's
+  // waitFor deadline if it lands inside the watcher's debounce chain.
+  beforeAll(async () => {
+    const warmRoot = mkdtempSync(join(tmpdir(), "cms-w-warm-"));
+    const warmDb = openIndex(join(warmRoot, "index.db"));
+    try {
+      writeFileSync(join(warmRoot, "warm.ts"), "export class Warm {}");
+      await indexFile(warmDb, warmRoot, "warm.ts");
+    } finally {
+      warmDb.close();
+      rmSync(warmRoot, { recursive: true, force: true });
+    }
+  });
 
   function setup(): { notesDir: string; memoryDir: string } {
     projectRoot = mkdtempSync(join(tmpdir(), "cms-w-"));
