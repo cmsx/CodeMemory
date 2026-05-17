@@ -1,4 +1,4 @@
-import type { AnchorWeight } from "../../core/note-store.js";
+import type { AnchorWeight, AnchorType } from "../../core/note-store.js";
 import type { MentionedNote } from "../../core/get-notes.js";
 import type { AnchorRow } from "./data.js";
 
@@ -16,7 +16,7 @@ export interface HistEntry {
 }
 
 export type DetailItem =
-  | { kind: "anchor"; uri: string; weight: AnchorWeight; status: AnchorRow["status"] }
+  | { kind: "anchor"; uri: string; type: AnchorType; weight: AnchorWeight; status: AnchorRow["status"] }
   | { kind: "mention"; id: string; summary?: string; stale: boolean };
 
 export function initHistory(): HistEntry[] {
@@ -48,6 +48,7 @@ export function buildDetailItems(anchors: AnchorRow[], mentioned: MentionedNote[
   const anchorItems: DetailItem[] = sorted.map((a) => ({
     kind: "anchor" as const,
     uri: a.uri,
+    type: a.type,
     weight: a.weight,
     status: a.status,
   }));

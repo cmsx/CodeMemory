@@ -1,7 +1,16 @@
 import { Box, Text, useStdout } from "ink";
 import type { ExpandedNote } from "../../core/get-notes.js";
+import type { AnchorType } from "../../core/note-store.js";
 import type { NoteRow, AnchorRow } from "./data.js";
 import type { DetailItem } from "./navigation.js";
+
+// Muted, distinguishable hues per anchor type; stale anchors override to gray.
+const ANCHOR_TYPE_COLOR: Record<AnchorType, string> = {
+  file: "#6c9ec0",
+  symbol: "#7faf7f",
+  entity: "#b08fc0",
+  env: "#c0a878",
+};
 
 function statusTag(status: string): string {
   return status !== "current" ? ` [${status}]` : "";
@@ -90,10 +99,12 @@ export function NoteDetailView({ note, items, selected }: NoteDetailViewProps) {
     .map((it) => {
       const idx = itemIdx++;
       const staleTag = it.status === "stale" ? "  [stale]" : "";
-      const line = `  ${it.uri}${staleTag}`;
+      const weightTag = `[${it.weight}]`.padEnd(12);
+      const line = `  ${weightTag}  ${it.uri}${staleTag}`;
+      const color = it.status === "stale" ? "gray" : ANCHOR_TYPE_COLOR[it.type];
       return (
         <Box key={it.uri}>
-          <Text inverse={idx === selected}>{line}</Text>
+          <Text inverse={idx === selected} color={color}>{line}</Text>
         </Box>
       );
     });
