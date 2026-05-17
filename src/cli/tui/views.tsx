@@ -4,11 +4,15 @@ import type { AnchorType } from "../../core/note-store.js";
 import type { NoteRow, AnchorRow } from "./data.js";
 import type { DetailItem } from "./navigation.js";
 
+// Background of the selected row; the row keeps a fixed color, only the text
+// switches (light/gray text becomes black so it stays legible).
+const SELECTION_BG = "gray";
+
 // Muted, distinguishable hues per anchor type; stale anchors override to gray.
 const ANCHOR_TYPE_COLOR: Record<AnchorType, string> = {
   file: "#6c9ec0",
   symbol: "#7faf7f",
-  entity: "#b08fc0",
+  entity: "#c178e0",
   env: "#c0a878",
 };
 
@@ -72,7 +76,10 @@ export function NoteListView({ title, rows, selected, viewportHeight }: NoteList
             const i = start + idx;
             return (
               <Box key={r.id}>
-                <Text inverse={i === selected}>
+                <Text
+                  backgroundColor={i === selected ? SELECTION_BG : undefined}
+                  color={i === selected ? "black" : undefined}
+                >
                   {padId(r.id)}{"  "}{r.summary}{statusTag(r.status)}
                 </Text>
               </Box>
@@ -101,10 +108,20 @@ export function NoteDetailView({ note, items, selected }: NoteDetailViewProps) {
       const staleTag = it.status === "stale" ? "  [stale]" : "";
       const weightTag = `[${it.weight}]`.padEnd(12);
       const line = `  ${weightTag}  ${it.uri}${staleTag}`;
-      const color = it.status === "stale" ? "gray" : ANCHOR_TYPE_COLOR[it.type];
+      const isSelected = idx === selected;
+      // Type hue stays on the selected row; stale gray would vanish on the
+      // gray selection background, so it flips to black there.
+      const color =
+        it.status === "stale"
+          ? isSelected
+            ? "black"
+            : "gray"
+          : ANCHOR_TYPE_COLOR[it.type];
       return (
         <Box key={it.uri}>
-          <Text inverse={idx === selected} color={color}>{line}</Text>
+          <Text backgroundColor={isSelected ? SELECTION_BG : undefined} color={color}>
+            {line}
+          </Text>
         </Box>
       );
     });
@@ -116,9 +133,14 @@ export function NoteDetailView({ note, items, selected }: NoteDetailViewProps) {
       const staleTag = it.stale ? "  [stale]" : "";
       const sumText = it.summary ? `  ${it.summary}` : "";
       const line = `  [[${it.id}]]${sumText}${staleTag}`;
+      const isSelected = idx === selected;
       return (
         <Box key={it.id}>
-          <Text inverse={idx === selected} dimColor={it.stale}>
+          <Text
+            backgroundColor={isSelected ? SELECTION_BG : undefined}
+            color={isSelected ? "black" : undefined}
+            dimColor={it.stale && !isSelected}
+          >
             {line}
           </Text>
         </Box>
