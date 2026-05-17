@@ -1,5 +1,11 @@
 # Code Memory Service
 
+## Specs
+
+Before starting work, read the specification in [`specs/`](specs/), starting
+with [`specs/00-overview.md`](specs/00-overview.md). It records the design and
+implementation nuances that must be accounted for.
+
 ## Skills
 
 Skills live in `skills/` at the repo root — **not** in `.claude/skills/`. They are not loaded when working on this repo; they install into the target project's `.claude/skills/` (copied or linked) and run there.
