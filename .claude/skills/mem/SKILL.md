@@ -85,11 +85,27 @@ An authored announce line: what will make a future agent open this note in full.
 
 ### Anchors and weights
 
-Anchor only a file/symbol substantively touched. One subject is usually anchored at several levels: `entity:Name`, `file:path`, `symbol:path#name`.
+Connectivity is **only** through anchors, and anchor search is **exact-match URI equality**. There is no hierarchy or containment:
+
+- a search on `symbol:path::Order` does **not** find a note anchored only to `symbol:path::Order.cancel`;
+- a search on `file:path` does **not** auto-include notes anchored to symbols *inside* that file;
+- the conceptual level (`entity:`) cannot be derived from code at all.
+
+So you must anchor every level you want the note found by — explicitly. Anchor only a file/symbol/entity **substantively** touched; a formal one-or-two-line edit is not an anchor — describe such cross-effects in prose under "Подводные камни".
+
+**Required before `create_note`: anchor on both axes.** Under-anchoring is the most common capture defect — walk this checklist every time:
+
+1. **Conceptual axis — `entity:`.** Which domain entities does this note concern? Anchor every one (`list_entities` for the registry). This is the **main search axis** — a future agent searches `entity:Name` first — and the most damaging to omit, because it is invisible to any code-level search. A note about cascade-deleting `Chunk` rows carries `entity:Chunk` even if no "chunk" file was edited.
+2. **Implementation axis — `symbol:` / `file:`.** Anchor the symbol the work centers on, and anchor the **class itself**, not only its methods. If the note is about a service as a whole but you only anchored `symbol:path::Service.methodA` / `.methodB`, also anchor `symbol:path::Service` (and/or `file:path`) — otherwise a class- or file-level search misses the note entirely.
+3. **`env:`** — if an env variable is involved.
+
+A typical note carries several anchors across both axes (e.g. `entity:Order` + `entity:Cart` + `symbol:...::OrderService` + `file:...`). One or two anchors, all on the same axis, is a signal you under-anchored.
+
+Symbol URI: `symbol:<path>::<name>` for a top-level symbol, `symbol:<path>::<Class>.<member>` for a method or member.
 
 An `env:` anchor resolves against the **union of all `.env*` files** (`.env`, `.env.example`, …) — a variable that appears only in `.env.example` (e.g. one with a default in a config file) still resolves. Pick `env:` whenever it is the semantically correct anchor; do not skip it fearing it will go `stale`.
 
-Weight — two axes:
+Weight — two axes, set deliberately **per anchor**:
 
 - **Centrality:** `core` (main work), `supporting` (substantially related), `incidental` (touched, not the point).
 - **Priority:** `critical` — the note holds an invariant everyone touching this anchor must see. Set sparingly. `critical` is not "very `core`".
@@ -115,5 +131,6 @@ When surfacing a note with `status: draft` or a `## Hypothesis` section — flag
 - Capturing a note with no reasoning.
 - Ignoring a `stale` anchor.
 - Marking an ordinary decision `critical`.
+- Under-anchoring: anchoring only to methods (not the class), or omitting `entity:` anchors — the note then never surfaces on class-, file-, or entity-level search.
 
 For onboarding an existing project, see the `/mem-onboarding` skill.
