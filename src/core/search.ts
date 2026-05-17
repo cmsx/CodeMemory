@@ -21,6 +21,11 @@ export interface SearchParams {
   context?: string[];
   include_archived?: boolean;
   include_drafts?: boolean;
+  // Explicit unfiltered enumeration — return every note as a compact list.
+  // A standard parameter, but deliberately not advertised in the MCP tool
+  // description or the `mem` skill: routine work uses targeted search, and
+  // surfacing match_all there invites it as a corner-cutting shortcut.
+  match_all?: boolean;
   limit?: number;
 }
 
@@ -54,7 +59,7 @@ export function search(db: DatabaseSync, params: SearchParams): SearchResult {
   if (params.include_drafts) statuses.push("draft");
   const statusPlaceholders = statuses.map(() => "?").join(",");
 
-  if (anchors.length === 0 && query === "") {
+  if (anchors.length === 0 && query === "" && !params.match_all) {
     return { hits: [], total: 0, truncated: false };
   }
 
@@ -137,6 +142,16 @@ export function search(db: DatabaseSync, params: SearchParams): SearchResult {
         c.textScore += textRelevance * TEXT_WEIGHT;
         c.qualified = true;
       }
+    }
+  }
+
+  // --- Match-all path (explicit unfiltered enumeration) ---
+  if (params.match_all) {
+    const allRows = db
+      .prepare(`SELECT id FROM notes WHERE status IN (${statusPlaceholders})`)
+      .all(...statuses) as { id: string }[];
+    for (const row of allRows) {
+      getCand(row.id).qualified = true;
     }
   }
 

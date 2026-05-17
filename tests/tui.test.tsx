@@ -7,6 +7,8 @@ import { openCli } from "../src/cli/context.js";
 import { reconcileNotes } from "../src/core/note-indexer.js";
 import { reconcileEntities } from "../src/core/entity-indexer.js";
 import { App } from "../src/cli/tui/app.js";
+import { NoteListView, windowStart } from "../src/cli/tui/views.js";
+import type { NoteRow } from "../src/cli/tui/data.js";
 
 const NOTE_MD = (id: string, summary: string, anchor = "file:src/main.ts", body = "") => `\
 ---
@@ -266,6 +268,57 @@ describe("TUI — draft/archived toggles", () => {
     } finally {
       ctx.db.close();
     }
+  });
+});
+
+describe("windowStart", () => {
+  it("returns 0 when the list fits the viewport", () => {
+    expect(windowStart(5, 8, 10)).toBe(0);
+  });
+
+  it("keeps a top-of-list cursor at offset 0", () => {
+    expect(windowStart(2, 30, 10)).toBe(0);
+  });
+
+  it("clamps to the last full window at the bottom", () => {
+    expect(windowStart(29, 30, 10)).toBe(20);
+  });
+
+  it("centres the cursor in the middle of a long list", () => {
+    expect(windowStart(20, 30, 10)).toBe(15);
+  });
+});
+
+describe("TUI — list scrolling window", () => {
+  function rows(n: number): NoteRow[] {
+    return Array.from({ length: n }, (_, i) => ({
+      id: `note-${String(i).padStart(2, "0")}`,
+      summary: `Summary ${i}`,
+      status: "current" as const,
+    }));
+  }
+
+  it("renders only the window around the cursor with scroll indicators", () => {
+    const { lastFrame, unmount } = render(
+      <NoteListView title="All notes" rows={rows(30)} selected={20} viewportHeight={10} />,
+    );
+    const frame = lastFrame() ?? "";
+    expect(frame).toContain("note-15");
+    expect(frame).toContain("note-24");
+    expect(frame).not.toContain("note-00");
+    expect(frame).not.toContain("note-29");
+    expect(frame).toContain("↑ 15 more");
+    expect(frame).toContain("↓ 5 more");
+    unmount();
+  });
+
+  it("shows no scroll indicators when the list fits", () => {
+    const { lastFrame, unmount } = render(
+      <NoteListView title="All notes" rows={rows(4)} selected={0} viewportHeight={10} />,
+    );
+    const frame = lastFrame() ?? "";
+    expect(frame).not.toContain("more");
+    unmount();
   });
 });
 

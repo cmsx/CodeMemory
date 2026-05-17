@@ -1,4 +1,4 @@
-import { Box, Text } from "ink";
+import { Box, Text, useStdout } from "ink";
 import type { ExpandedNote } from "../../core/get-notes.js";
 import type { NoteRow, AnchorRow } from "./data.js";
 import type { DetailItem } from "./navigation.js";
@@ -7,13 +7,49 @@ function statusTag(status: string): string {
   return status !== "current" ? ` [${status}]` : "";
 }
 
+// Note ids vary in length; pad them to a fixed column so summaries line up
+// vertically. Ids longer than the column are truncated with an ellipsis.
+const ID_COL_WIDTH = 50;
+
+function padId(id: string): string {
+  if (id.length > ID_COL_WIDTH) return id.slice(0, ID_COL_WIDTH - 1) + "…";
+  return id.padEnd(ID_COL_WIDTH);
+}
+
+// Rows reserved for non-list chrome: title + blank + two scroll indicators
+// here, plus blank + hint line in App.
+const CHROME_ROWS = 7;
+const DEFAULT_VIEWPORT = 20;
+const MIN_VIEWPORT = 3;
+
+// First row index of the scroll window: keeps `selected` roughly centred so
+// the list slides under the cursor. Pure — derived fresh each render.
+export function windowStart(selected: number, total: number, height: number): number {
+  if (total <= height) return 0;
+  const start = selected - Math.floor(height / 2);
+  return Math.max(0, Math.min(start, total - height));
+}
+
 interface NoteListViewProps {
   title: string;
   rows: NoteRow[];
   selected: number;
+  viewportHeight?: number; // override terminal-derived height (tests)
 }
 
-export function NoteListView({ title, rows, selected }: NoteListViewProps) {
+export function NoteListView({ title, rows, selected, viewportHeight }: NoteListViewProps) {
+  const { stdout } = useStdout();
+  const derived = (stdout?.rows ?? 0) - CHROME_ROWS;
+  const viewport = Math.max(
+    MIN_VIEWPORT,
+    viewportHeight ?? (derived >= MIN_VIEWPORT ? derived : DEFAULT_VIEWPORT),
+  );
+
+  const start = windowStart(selected, rows.length, viewport);
+  const visible = rows.slice(start, start + viewport);
+  const above = start;
+  const below = rows.length - (start + visible.length);
+
   return (
     <Box flexDirection="column">
       <Text bold>{title}</Text>
@@ -21,13 +57,20 @@ export function NoteListView({ title, rows, selected }: NoteListViewProps) {
       {rows.length === 0 ? (
         <Text dimColor>No notes.</Text>
       ) : (
-        rows.map((r, i) => (
-          <Box key={r.id}>
-            <Text inverse={i === selected}>
-              {r.id}{"  "}{r.summary}{statusTag(r.status)}
-            </Text>
-          </Box>
-        ))
+        <>
+          <Text dimColor>{above > 0 ? `  ↑ ${above} more` : " "}</Text>
+          {visible.map((r, idx) => {
+            const i = start + idx;
+            return (
+              <Box key={r.id}>
+                <Text inverse={i === selected}>
+                  {padId(r.id)}{"  "}{r.summary}{statusTag(r.status)}
+                </Text>
+              </Box>
+            );
+          })}
+          <Text dimColor>{below > 0 ? `  ↓ ${below} more` : " "}</Text>
+        </>
       )}
     </Box>
   );

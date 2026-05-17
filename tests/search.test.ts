@@ -532,3 +532,52 @@ describe("limit and truncated flag", () => {
     expect(result.hits.map((h) => h.id)).toContain(critical.id);
   });
 });
+
+describe("match_all", () => {
+  it("returns all current notes without anchors or query", () => {
+    const notesDir = setup();
+    writeAll(notesDir, [
+      note({ anchors: [{ uri: "file:src/a.ts", weight: "core" }] }),
+      note({ anchors: [{ uri: "file:src/b.ts", weight: "core" }] }),
+      note({ anchors: [{ uri: "file:src/c.ts", weight: "core" }] }),
+    ]);
+
+    const result = search(db, { match_all: true });
+    expect(result.hits).toHaveLength(3);
+  });
+
+  it("empty search without match_all still returns nothing", () => {
+    const notesDir = setup();
+    writeAll(notesDir, [note({ anchors: [{ uri: "file:src/a.ts", weight: "core" }] })]);
+
+    expect(search(db, {}).hits).toHaveLength(0);
+  });
+
+  it("respects status flags — drafts/outdated excluded unless opted in", () => {
+    const notesDir = setup();
+    writeAll(notesDir, [
+      note({ anchors: [{ uri: "file:src/a.ts", weight: "core" }] }),
+      note({ anchors: [{ uri: "file:src/b.ts", weight: "core" }], status: "draft" }),
+      note({ anchors: [{ uri: "file:src/c.ts", weight: "core" }], status: "outdated" }),
+    ]);
+
+    expect(search(db, { match_all: true }).hits).toHaveLength(1);
+    expect(
+      search(db, { match_all: true, include_drafts: true, include_archived: true }).hits,
+    ).toHaveLength(3);
+  });
+
+  it("limit truncates the match_all listing", () => {
+    const notesDir = setup();
+    writeAll(notesDir, [
+      note({ anchors: [{ uri: "file:src/a.ts", weight: "core" }] }),
+      note({ anchors: [{ uri: "file:src/b.ts", weight: "core" }] }),
+      note({ anchors: [{ uri: "file:src/c.ts", weight: "core" }] }),
+    ]);
+
+    const result = search(db, { match_all: true, limit: 2 });
+    expect(result.hits).toHaveLength(2);
+    expect(result.total).toBe(3);
+    expect(result.truncated).toBe(true);
+  });
+});

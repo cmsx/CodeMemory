@@ -27,12 +27,23 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
         context: z.array(z.string()).optional(),
         include_archived: z.boolean().optional(),
         include_drafts: z.boolean().optional(),
+        // Standard parameter, intentionally left without a .describe() and
+        // absent from the tool description: routine work uses targeted search.
+        match_all: z.boolean().optional(),
         limit: z.number().int().positive().optional(),
       },
     },
-    async ({ anchors, query, context, include_archived, include_drafts, limit }) => {
+    async ({ anchors, query, context, include_archived, include_drafts, match_all, limit }) => {
       return json(
-        search(ctx.db, { anchors, query, context, include_archived, include_drafts, limit }),
+        search(ctx.db, {
+          anchors,
+          query,
+          context,
+          include_archived,
+          include_drafts,
+          match_all,
+          limit,
+        }),
       );
     },
   );

@@ -11,9 +11,9 @@ Communicate with the user in Russian. Write all note content in Russian. Skill i
 
 Onboarding is skill-driven: no dedicated MCP tools or CLI commands. Everything is over the ordinary tools — `search`, `get_notes`, `create_note`, `create_entity`, `update_note`.
 
-## 1. Bootstrap the structural index
+## 1. Structural index — automatic
 
-Run `cms reindex` — builds `symbol_index` via tree-sitter so `symbol:` anchors resolve. On an empty index this happens automatically.
+The `symbol_index` (built via tree-sitter so `symbol:` anchors resolve) is bootstrapped automatically: the service performs a full index when it starts on a project with an empty index. Nothing for you to run — symbol anchors resolve from the first chunk.
 
 ## 2. Setup
 
@@ -35,6 +35,8 @@ The source is fed in parts — it cannot all be absorbed in one pass. For each c
 ## 4. Review
 
 Draft notes are reviewed by the human — in a batch or along the way — and promoted to `current` via `update_note`. Unverified stays `draft`.
+
+To enumerate the whole store — see what exists, check statuses, eyeball how notes turned out — call `search` with `match_all: true` together with `include_drafts: true` (a compact `id` + `summary` list of every note). `match_all` is a standard `search` parameter, but its place is here: it is the onboarding way to inventory the base. In routine work you search by anchors/text — never reach for `match_all` as a shortcut.
 
 ## Scratch file
 
