@@ -22,7 +22,7 @@ A workflow for planning and step-by-step execution of non-trivial tasks. The pla
 
 ## Key invariants
 
-1. One active plan at a time. Several `*-00-index.md` with `status: active` — refuse, ask for an explicit `@<path>`.
+1. One active plan at a time. Resolving the plan for a command that takes an optional `@<path>`: `@<path>` → that index; no argument → the single `plans/*-00-index.md` with `status: active`; none or several active without an argument → refuse, report, ask for `@<path>`.
 2. Flat `plans/`, no subfolders. File names `<prefix>-NN-<slug>.md`: `<prefix>` 3–4 letters, `NN` two digits with leading zero (`00` = index).
 3. `plans/` is gitignored. Source of truth is `specs/`, which is committed.
 4. Progress = checkboxes in the index. The first stage without `[x]` is current. Sub-task checkboxes in step files allow resuming.
@@ -78,32 +78,33 @@ The imperative layer applies to all planning commands (`/work-grill`, `/work-pla
 - Ask one question at a time. Wait for the answer, then move on. Never dump questions in a heap.
 - Short question (a choice, yes/no, a name) — use the interactive widget if available.
 - Complex or open question — ask as plain text.
+- A confirmation — plain text, no widget; pre-fill the answer with «да» so the user confirms in one keystroke.
 
 ## Memory integration
 
-Active only if the project is connected to the Code Memory Service (`mem` skill present). Otherwise this section is inert.
+How to search, read, anchor, and capture lives in the `mem` skill's `core.md` — this section is only the work-side division of labor.
 
-**Division of labor:**
+**specs vs memory:**
 
 - `specs/` — business level: business logic, user stories, the DB model, a dry catalog of patterns.
 - code memory — everything about code: implementation, processes, relationships, "how we got here".
 
-**Reading.** Searching memory is mandatory when planning or preparing an implementation — it holds the decisions, invariants, and edge cases that shape the work and are not visible in code. During implementation memory is on call, not a per-step gate: check it before a non-trivial edit or when a contract is in question. See the `mem` skill. `/work-grill`, `/work-update`, and `/work` execution instruct their concrete reads.
+**Reading.** Mandatory when planning or preparing an implementation; on call during execution — discipline in the `mem` skill's `core.md`. `/work-grill`, `/work-update`, and `/work` instruct their concrete reads.
 
 **Writing (plan → memory):**
 
-- `/work-step-done` — capture code/implementation knowledge by invoking the `/mem` skill, which owns the capture process (dedup, anchoring on all applicable axes, status). Work-specific only: strip plan-process metadata (no "stage 2", no plan structure) — that metadata stays in the index, which may hold a `[[id]]` pointer.
-- `/work-done` — the main memory work. A decision forks: *what the system does / how to use it* → `specs/`; *how we got here, what was tried and rejected* → a code-memory note. Most decisions are implementation-level → memory; touch `specs/` only when business logic, the DB model, or a pattern changed.
+- `/work-step-done` — capture code knowledge via `/mem`. Work-specific: strip plan-process metadata (no "stage 2", no plan structure) — that metadata stays in the index, which may hold a `[[id]]` pointer.
+- `/work-done` — the main memory work. A decision forks: *what the system does / how to use it* → `specs/`; *how we got here, what was tried and rejected* → a code-memory note. Touch `specs/` only when business logic, the DB model, or a pattern changed — most decisions go to memory.
 
 Never put plan-process metadata into memory.
 
-**Resolving `[[id]]`.** Plan files may hold `[[id]]` pointers to memory notes. Resolve via `get_notes` only when the note's substance is needed — lazily, never eagerly on every read. Resolve multiple pointers in one `get_notes` call.
+**Resolving `[[id]]`.** Plan files may hold `[[id]]` pointers to memory notes. Resolve via `get_notes` lazily — only when the note's substance is needed, never eagerly. Multiple pointers in one call.
 
 ## Behavioral notes
 
 - Do not duplicate with a todo tool — plan mode plus step-file checkboxes are enough.
 - Index — navigation and strategy. Step file — detail and history. Do not duplicate content between them.
-- When in doubt — ask the user, one question at a time. Especially before destructive operations (editing the spec, changing plan status).
+- When in doubt — ask the user. Especially before destructive operations (editing the spec, changing plan status).
 - Never delete plan files automatically — deletion is manual.
 
 ## Templates

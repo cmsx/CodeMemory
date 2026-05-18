@@ -1,17 +1,11 @@
 ---
 name: mem-onboarding
-description: Use to seed the Code Memory Service when connecting it to an existing project — a one-time, multi-session procedure that extracts a starting set of notes from existing sources. Invoked explicitly as /mem-onboarding.
+description: Seed the Code Memory Service when connecting it to an existing project — a one-time, multi-session procedure that extracts a starting set of notes from existing sources. Invoked explicitly as /mem-onboarding.
 ---
 
-# Code Memory — onboarding
+# /mem-onboarding — seed Code Memory
 
-Seeds the Code Memory Service when connecting it to an existing project. Routine work is organic capture in live sessions — see the `mem` skill.
-
-Communicate with the user in Russian. Write all note content in Russian. Skill instructions are English.
-
-Skill-driven: no dedicated tools. Everything over the ordinary MCP tools — `search`, `get_notes`, `create_note`, `create_entity`, `update_note`.
-
-Load the `mem` skill at the start and keep it in context — it owns the anchoring rules, weights, and capture discipline. Onboarding captures in batch (the chunk loop below), but every note follows mem's rules; this skill does not restate them.
+Read the `mem` skill's `core.md` once per session before proceeding (skip if already in context).
 
 ## 1. Structural index
 
@@ -29,14 +23,8 @@ Feed the source in parts. For each chunk:
 1. Read the chunk; determine its entities and files.
 2. `search` with `include_drafts: true` — earlier-chunk notes are `draft` and a default `search` misses them.
 3. Decide: `create_note` with `status: draft` (new), `update_note` (refine), or skip (covered).
-4. Anchor every note on both axes (see below).
+4. Anchor every note per `core.md` § Anchors.
 5. Drop the raw chunk text before the next.
-
-Between chunks the raw text is dropped; earlier-chunk notes stay reachable via `search` `include_drafts: true` — that is dedup.
-
-### Anchoring
-
-Onboarding notes are the most under-anchored — anchoring is the failure point here. Before every `create_note`, apply the `mem` skill's Anchors section in full: every anchor type, every applicable axis and level. `create_note` returns a `warning` when an axis is empty — fix the anchors and call again.
 
 ## 4. Review
 
@@ -59,4 +47,4 @@ A source with no explicit intent to document decisions (tests, migrations, gener
 
 ## Boundary of automation
 
-Only the articulated goes into a note — what is in the spec, the discussion, or a verifiable artifact. Extraction is translation of a source, not reconstruction.
+Only the articulated goes into a note — what is in the spec, the discussion, or a verifiable artifact.
