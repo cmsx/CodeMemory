@@ -92,7 +92,7 @@ Active only if the project is connected to the Code Memory Service (`mem` skill 
 
 **Writing (plan → memory):**
 
-- `/work-step-done` — capture code/implementation knowledge via `/mem`, `status: current`. Anchor the note to files/symbols; strip plan-process metadata (no "stage 2", no plan structure). That metadata stays in the index, which may hold a `[[id]]` pointer.
+- `/work-step-done` — capture code/implementation knowledge by invoking the `/mem` skill, which owns the capture process (dedup, anchoring on all applicable axes, status). Work-specific only: strip plan-process metadata (no "stage 2", no plan structure) — that metadata stays in the index, which may hold a `[[id]]` pointer.
 - `/work-done` — the main memory work. A decision forks: *what the system does / how to use it* → `specs/`; *how we got here, what was tried and rejected* → a code-memory note. Most decisions are implementation-level → memory; touch `specs/` only when business logic, the DB model, or a pattern changed.
 
 Never put plan-process metadata into memory.

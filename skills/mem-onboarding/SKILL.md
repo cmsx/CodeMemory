@@ -11,6 +11,8 @@ Communicate with the user in Russian. Write all note content in Russian. Skill i
 
 Skill-driven: no dedicated tools. Everything over the ordinary MCP tools — `search`, `get_notes`, `create_note`, `create_entity`, `update_note`.
 
+Load the `mem` skill at the start and keep it in context — it owns the anchoring rules, weights, and capture discipline. Onboarding captures in batch (the chunk loop below), but every note follows mem's rules; this skill does not restate them.
+
 ## 1. Structural index
 
 Automatic — the service full-indexes a project with an empty index on startup. `symbol:` anchors resolve from the first chunk. Nothing to run.
@@ -34,13 +36,7 @@ Between chunks the raw text is dropped; earlier-chunk notes stay reachable via `
 
 ### Anchoring
 
-Onboarding notes are the most under-anchored. Before every `create_note`:
-
-- **`entity:`** — every domain entity the note concerns. The main search axis, invisible to code-level search.
-- **`symbol:` / `file:`** — the file/symbol the note centers on; anchor the class itself, not only its methods.
-- **`env:`** — if an env variable is involved.
-
-`create_note` returns a `warning` when an axis is empty — fix the anchors and call again. Full discipline and weights — `mem` skill.
+Onboarding notes are the most under-anchored — anchoring is the failure point here. Before every `create_note`, apply the `mem` skill's Anchors section in full: every anchor type, every applicable axis and level. `create_note` returns a `warning` when an axis is empty — fix the anchors and call again.
 
 ## 4. Review
 

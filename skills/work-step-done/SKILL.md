@@ -14,7 +14,7 @@ Called when the current stage is finished — tests pass, code reviewed, ready t
 1. Find the current stage (first without `[x]` in the index).
 2. Read its step file, especially `## Working notes`.
 3. Summarize the notes into the index sections: decisions → Decisions; plan departures → Deviations; things to check → Edge cases; later ideas → Future ideas; unresolved → Open questions.
-4. Memory capture (if connected to Code Memory): `search` for an existing note on the same anchors/topic — if one exists, `update_note`, do not duplicate. Otherwise capture via `/mem`, `status: current`. Anchor to files/symbols; strip plan-process metadata (no "stage 2", no plan structure). The index keeps the process entry and may hold a `[[id]]` pointer.
+4. Memory capture (if connected to Code Memory): invoke the `/mem` skill — it owns the whole capture process (dedup search, anchoring on all applicable axes, body, status). Do not capture from here without it; this skill does not restate its rules. Work-specific only: the note holds code knowledge — strip plan-process metadata (no "stage 2", no plan structure); that metadata stays in the index, which may hold a `[[id]]` pointer.
 5. Show the proposed index changes before writing. Apply only after confirmation.
 6. Keep the summary brief — do not copy long Working-notes passages; reference the step file § Working notes if a detail is worth keeping verbatim.
 7. Put `[x]` next to the stage in the index.

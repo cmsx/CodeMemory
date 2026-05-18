@@ -93,15 +93,22 @@ Investigation note (unfamiliar code):
 
 ## Anchors
 
+Four anchor types — the set is closed; consider every one before `create_note`, none is optional to weigh:
+
+- `file:<path>` — a source file.
+- `symbol:<path>::<name>` — a top-level symbol; `<path>::<Class>.<member>` for a method or member.
+- `entity:<Name>` — a registered domain entity (`list_entities` for the registry).
+- `env:<VAR>` — an environment variable, resolved against the union of all `.env*` files.
+
 Connectivity is only through anchors; anchor search is exact-match URI equality, no hierarchy or containment:
 
 - `symbol:path::Order` does not find a note anchored only to `symbol:path::Order.cancel`;
 - `file:path` does not auto-include notes anchored to symbols inside it;
 - `entity:` cannot be derived from code.
 
-Anchor only a file/symbol/entity **substantively** touched. A formal one-or-two-line edit is not an anchor — put such cross-effects in prose under "Подводные камни".
+Anchor only what the note **substantively** touches. A formal one-or-two-line edit is not an anchor — put such cross-effects in prose under "Подводные камни".
 
-**Substantive relevance decides *what* to anchor; once decided, anchor it at every applicable level.** The gate stays: anchor only a file/symbol/entity the note substantively concerns, not everything brushed. But each target that passes the gate must be anchored on *all* applicable levels at once — the containing `file:`, the `symbol:` of the class, and the `symbol:` of each method worked on. Anchoring a method without also anchoring its class and file, or a symbol without its file, is under-anchoring: the note then misses searches at the other levels (anchor search is exact-match, no hierarchy). A weak anchor (`incidental`) still surfaces the note; an absent one never does.
+**Substantive relevance decides *what* to anchor; once decided, anchor it at every applicable level.** The gate stays: anchor only what the note substantively concerns, not everything brushed. But each target that passes the gate must be anchored on *all* applicable levels at once — the containing `file:`, the `symbol:` of the class, and the `symbol:` of each method worked on. Anchoring a method without also anchoring its class and file, or a symbol without its file, is under-anchoring: the note then misses searches at the other levels (anchor search is exact-match, no hierarchy). A weak anchor (`incidental`) still surfaces the note; an absent one never does.
 
 **Anchor on both axes before `create_note`** — under-anchoring is the most common defect. Checklist:
 
@@ -111,7 +118,7 @@ Anchor only a file/symbol/entity **substantively** touched. A formal one-or-two-
 
 One or two anchors, or anchors on a single axis = under-anchored. `create_note` returns a `warning` when an axis is empty — fix the anchors and call again. The warning catches only an empty axis; a target anchored at one level but not its other levels passes silently — level completeness is your responsibility, not the tool's.
 
-Symbol URI: `symbol:<path>::<name>` for a top-level symbol, `symbol:<path>::<Class>.<member>` for a method or member. `env:` resolves against the union of all `.env*` files — pick it whenever semantically correct, do not skip it fearing `stale`.
+`env:` — pick it whenever semantically correct; do not skip it fearing a future `stale`.
 
 Weight — two independent axes, set per anchor:
 

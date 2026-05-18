@@ -15,9 +15,9 @@ Finalizes the whole plan: synchronize accumulated decisions with the spec and co
 2. Verify everything planned is implemented in code.
 3. Read the spec from `specs/`.
 4. Walk the index sections as a checklist, not in bulk. For each Decision / Deviation / Edge case / Open question:
-   - The decision forks (see Memory integration in `core.md`): *what the system does / how to use it* → `specs/`; *how we got here, what was tried and rejected* → a code-memory note via `/mem`.
+   - The decision forks (see Memory integration in `core.md`): *what the system does / how to use it* → `specs/`; *how we got here, what was tried and rejected* → a code-memory note.
    - Touch `specs/` only when business logic, the DB model, or a pattern actually changed — most decisions go to memory.
-   - Memory: `search` first to avoid duplicates; consolidate and cross-link stage-level notes; add feature-level notes that only make sense now.
+   - Memory: capture by invoking the `/mem` skill — it owns the process (dedup search, anchoring on all applicable axes). At this finalize stage, additionally: consolidate and cross-link stage-level notes, add feature-level notes that only make sense now.
    - Edge cases — all covered in code/tests? If not, raise before closing.
    - Open questions — if any still open, warn.
 5. Ambiguous places — ask the user, one question at a time. Do not apply spec edits without confirmation.
