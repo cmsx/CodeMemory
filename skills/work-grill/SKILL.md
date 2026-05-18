@@ -14,6 +14,7 @@ Discusses only — never writes files. Recommend Opus for planning quality — o
 - `/work-grill prime [topic]` — first invoke `/work-prime`, then proceed.
 - Otherwise — start from session context; pull spec or plan files as the topic requires.
 - If the topic touches existing code and the project is connected to Code Memory — `search` it by topic as part of that pull.
+- As the discussion branches into a new area, `search` memory for that area too — not only the initial topic. Per the `mem` skill: the search scope is not fixed at the start.
 
 ## Topic
 

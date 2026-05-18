@@ -27,7 +27,9 @@
   (`.tmp` → обновление индекса в транзакции → atomic rename).
 - **Index layer** — SQLite по схеме из `02`, режим WAL, FTS5.
 - **Structural indexer** — tree-sitter; инкрементально по content hash.
-- **Search / ranking** — отсечка членства + `weight × idf × text_relevance`.
+- **Search / ranking** — отсечка членства + `weight × idf × text_relevance`;
+  термы текстового запроса стеммятся (вендорный русский Snowball) и матчатся
+  префиксом — см. `03`.
 - **Anchor verifier** — резолв якорей: `symbol`/`file` — SQL и stat,
   `env` — парсинг `.env*`, `entity` — реестр.
 - **Watchers** — два, с дебаунсом ~500 мс.

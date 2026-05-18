@@ -533,6 +533,49 @@ describe("limit and truncated flag", () => {
   });
 });
 
+describe("russian stemming", () => {
+  it("matches a Russian query across inflections", () => {
+    const notesDir = setup();
+    const n = note({
+      id: "2024-01-01-ru",
+      anchors: [{ uri: "entity:Order", weight: "core" }],
+      summary: "Отмена заказа",
+      body: "## Body\n\nОтмена заказа освобождает резерв склада.",
+    });
+    writeAll(notesDir, [n]);
+
+    expect(search(db, { query: "отменить заказы" }).hits.map((h) => h.id)).toEqual([n.id]);
+    expect(search(db, { query: "освобождать резервы" }).hits.map((h) => h.id)).toEqual([n.id]);
+  });
+
+  it("AND semantics — every term must match", () => {
+    const notesDir = setup();
+    const n = note({
+      id: "2024-01-01-and",
+      anchors: [{ uri: "entity:Order", weight: "core" }],
+      summary: "Отмена заказа",
+      body: "## Body\n\nОтмена заказа освобождает резерв.",
+    });
+    writeAll(notesDir, [n]);
+
+    expect(search(db, { query: "отмена резерв" }).hits.length).toBe(1);
+    expect(search(db, { query: "отмена накладная" }).hits.length).toBe(0);
+  });
+
+  it("any_term — OR semantics, one matching term is enough", () => {
+    const notesDir = setup();
+    const n = note({
+      id: "2024-01-01-any",
+      anchors: [{ uri: "entity:Order", weight: "core" }],
+      summary: "Отмена заказа",
+      body: "## Body\n\nОтмена заказа освобождает резерв.",
+    });
+    writeAll(notesDir, [n]);
+
+    expect(search(db, { query: "отмена накладная", any_term: true }).hits.length).toBe(1);
+  });
+});
+
 describe("match_all", () => {
   it("returns all current notes without anchors or query", () => {
     const notesDir = setup();

@@ -247,7 +247,10 @@ describe("Story 04 — поиск по смутному воспоминанию
   });
 
   it("текстовый поиск возвращает несколько хитов, лидер — наиболее релевантный", async () => {
-    const r = (await h.call("search", { query: "повтор запрос backoff" })) as {
+    const r = (await h.call("search", {
+      query: "повтор запрос backoff",
+      any_term: true,
+    })) as {
       hits: { id: string; summary: string }[];
       total: number;
     };

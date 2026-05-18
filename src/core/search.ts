@@ -1,5 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 import { anchorType, type NoteStatus } from "./note-store.js";
+import { stemRussian } from "./stem-ru.js";
 
 const WEIGHT_MULT: Record<string, number> = {
   critical: 3, core: 3, supporting: 2, incidental: 1,
@@ -26,6 +27,10 @@ export interface SearchParams {
   // description or the `mem` skill: routine work uses targeted search, and
   // surfacing match_all there invites it as a corner-cutting shortcut.
   match_all?: boolean;
+  // Text query: combine terms with OR instead of the default AND. For fuzzy
+  // recall when the exact wording is uncertain — BM25 still ranks dense
+  // matches on top. Default (AND) is the precise, correct-by-default mode.
+  any_term?: boolean;
   limit?: number;
 }
 
@@ -124,7 +129,12 @@ export function search(db: DatabaseSync, params: SearchParams): SearchResult {
   if (query !== "") {
     const tokens = query.match(/[\p{L}\p{N}_]+/gu);
     if (tokens && tokens.length > 0) {
-      const matchStr = tokens.join(" OR ");
+      // Stem each term and match it as a prefix: Russian inflection is
+      // suffixal, so a `stem*` query catches every form in the unstemmed
+      // index. Terms join with implicit AND (space) unless `any_term`.
+      const matchStr = tokens
+        .map((t) => stemRussian(t.toLowerCase()) + "*")
+        .join(params.any_term ? " OR " : " ");
       // Pure FTS5 query — no join/subquery so bm25() works correctly.
       // Status filtering done below via a separate lookup.
       const statusSet = new Set(statuses);

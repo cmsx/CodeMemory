@@ -18,6 +18,8 @@ Two modes:
 
 **Planning and preparing an implementation — search memory; it is mandatory.** Memory holds the contracts, invariants, edge cases, and past decisions that shape the work and are not visible in code or signatures. Scoping a task, reviewing a plan, choosing an approach — none is complete until memory is consulted. Search broad here — `entity:` and `file:` anchors cover the horizon so a nuance or edge case is not missed.
 
+**The search scope is not fixed at the start.** Each new area the work or discussion moves into is a separate, mandatory search — search it before reaching for `grep` and code reading. Do not assume the first search under the initial topic covered the branches the work later grew into; when the topic widens, re-search for the new area.
+
 **Implementing — memory is on call, not a per-step gate.** Once the scope is understood, do not re-query for every symbol. The important decisions live in memory: before a non-trivial edit, or when a contract or invariant is in question, check it.
 
 ### How to search
@@ -31,6 +33,8 @@ Anchored search is exact-match. Search every level the work touches:
 - large file — `list_symbols_in_file`, then targeted `Read` of the symbol range, not the whole file
 
 Order: entity → text → file → symbol. Text search — try 1–2 rephrasings.
+
+Text `query` — write it in the language the notes are written in; a query in a different language than the note prose finds nothing. Russian terms are stemmed and prefix-matched on the search side — write natural words, do not hand-pick roots. Terms combine as AND by default — keep the query to the few key words. Unsure of the exact wording (fuzzy recall) → `any_term: true` to match any term; BM25 still ranks the densest hit first.
 
 ## Reading results
 

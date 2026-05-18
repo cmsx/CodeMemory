@@ -27,13 +27,28 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
         context: z.array(z.string()).optional(),
         include_archived: z.boolean().optional(),
         include_drafts: z.boolean().optional(),
+        any_term: z
+          .boolean()
+          .optional()
+          .describe(
+            "Text query: match ANY term instead of ALL. Default (omitted) requires every term — precise. Set true for fuzzy recall when unsure of the exact wording; BM25 still ranks the densest match first.",
+          ),
         // Standard parameter, intentionally left without a .describe() and
         // absent from the tool description: routine work uses targeted search.
         match_all: z.boolean().optional(),
         limit: z.number().int().positive().optional(),
       },
     },
-    async ({ anchors, query, context, include_archived, include_drafts, match_all, limit }) => {
+    async ({
+      anchors,
+      query,
+      context,
+      include_archived,
+      include_drafts,
+      any_term,
+      match_all,
+      limit,
+    }) => {
       return json(
         search(ctx.db, {
           anchors,
@@ -41,6 +56,7 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
           context,
           include_archived,
           include_drafts,
+          any_term,
           match_all,
           limit,
         }),
