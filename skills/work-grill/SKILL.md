@@ -14,7 +14,7 @@ Recommend Opus — one line at the start, no waiting.
 1. `/work-grill prime [topic]` — run `/work-prime` (basic) first; otherwise skip priming.
 2. Topic — text after `grill` (excluding a leading `prime`). No topic — ask the user for it.
 3. Pull spec or plan files as the topic requires.
-4. `search` per the `mem` skill's `core.md`: by the topic, and again for each new area the discussion branches into.
+4. `search` per the `mem` skill's `core.md`: on the topic at start, and on entering each branch of the decision tree. Report each search as the one-line status `память: нашёл N, пригодилось k`. Keep the `[[id]]` of notes useful for implementation — `/work-plan` or `/work-update` writes them into the plan's `## Память` section.
 
 ## Grill discipline
 

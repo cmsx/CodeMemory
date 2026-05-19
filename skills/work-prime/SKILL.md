@@ -21,7 +21,7 @@ Other `/work` commands invoke `/work-prime` as their first step and state the de
 1. Read spec files at the selected depth.
 2. Active plan (`plans/*-00-index.md`, `status: active`) — read the index only, not step files.
 3. Call `list_entities`. Do **not** `search` here — priming is a document load only; topical search belongs to the work that follows (see the `mem` skill's `core.md`).
-4. Report what was loaded — a short file list, the active plan, whether the domain map loaded. No content retelling.
+4. Report what was loaded — a short file list, the active plan, and the domain map as a concrete count: `домен-карта: N сущностей`. The count proves `list_entities` ran. No content retelling.
 
 ## Do not
 

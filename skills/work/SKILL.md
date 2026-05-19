@@ -14,10 +14,10 @@ Read the `work` skill's `core.md` once per session before proceeding (skip if al
 3. **Reality check:** scan the codebase and `git log` for done-but-unchecked stages, or checked stages with no trace in code. Anything off — report and ask before proceeding.
 4. Find the current stage.
 5. Read the current step file in full, including `## Working notes`.
-6. `search` the stage's area before editing per the `mem` skill's `core.md` (`entity:` then `file:`). Honor any `stale` anchor or `critical` note.
+6. `search` the stage's area before editing per the `mem` skill's `core.md` (`entity:` then `file:`); resolve via `get_notes` the index `## Память` pointers relevant to this stage. Report the one-line status `память: нашёл N, пригодилось k`. Honor any `stale` anchor or `critical` note.
 7. Step file has `[x]` sub-tasks — work was interrupted. Continue from the first unchecked sub-task, do not restart.
 8. Report briefly: which plan, which stage, interrupted-work signs, the session plan.
-9. Work the stage. Check off `[x]` sub-tasks as you go; write Working notes along the way.
+9. Work the stage. On entering a sub-task whose file/symbol area was not yet searched this session, `search` memory first and report the one-line status `память: нашёл N, пригодилось k`. Check off `[x]` sub-tasks as you go; write Working notes along the way, recording the `[[id]]` of notes that genuinely added understanding — not every note found.
 10. Before pausing or ending a turn — reconcile the step file: every done sub-task `[x]`, every needed Working note present.
 
 Do not capture to memory mid-stage — capture is owned by `/work-step-done`.

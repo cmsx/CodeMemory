@@ -91,6 +91,10 @@ How to search, read, anchor, and capture lives in the `mem` skill's `core.md` �
 
 **Reading.** Mandatory when planning or preparing an implementation; on call during execution — discipline in the `mem` skill's `core.md`. `/work-grill`, `/work-update`, and `/work` instruct their concrete reads.
 
+**Search artifact.** Every memory `search` tied to a discrete unit of work (a discussion branch, a stage, a sub-task) reports a one-line status in chat: `память: нашёл N, пригодилось k` — counts only, no per-note topics, which would bloat context. The count cannot be written without searching — that is the point. Substance from useful notes goes into Working notes, not the chat status.
+
+**Memory references in the plan.** The index holds a `## Память` section: `[[id]]` of notes and `file:`/`symbol:` anchors found useful for implementation, each with a one-line note of its use. `/work-grill` collects them while discussing; `/work-plan` and `/work-update` write them in. On stage start `/work` reads the section as the pointer to what to load before editing.
+
 **Writing (plan → memory):**
 
 - `/work-step-done` — capture code knowledge via `/mem`. Work-specific: strip plan-process metadata (no "stage 2", no plan structure) — that metadata stays in the index, which may hold a `[[id]]` pointer.
@@ -126,6 +130,10 @@ created: <YYYY-MM-DD>
 ## Контекст и ограничения
 <what matters across all stages: architectural premises, constraints,
 agreements, links to relevant spec parts>
+
+## Память
+<[[id]] of notes and file:/symbol: anchors useful for implementation,
+each with a one-line note of its use — read before editing the area>
 
 ## Этапы
 - [ ] `<prefix>-01-<slug>.md` — short description

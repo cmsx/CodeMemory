@@ -19,7 +19,9 @@ Two modes:
 
 Planning or preparing an implementation — `search` memory; mandatory. It holds contracts, invariants, edge cases, decisions not visible in code. Search broad — `entity:` and `file:` anchors.
 
-Scope is not fixed at the start. Each new area the work enters — a separate, mandatory search, before `grep` and code reading.
+Memory precedes file reading — it is the map of which files carry context. Starting to study or plan an area by reading its code, with no prior memory search for that area, is a failure: memory exists to spare exactly that blind reading. This is a gate on *entering* an area, not on every `Read` — routine reads and edits inside an already-searched area need no re-query (see Implementing below).
+
+The search trigger is a discrete unit of work, never the judgment "a new area": the first touch of a given file or symbol, and the entry into each task or discussion branch. Search at that point, before `grep` and code reading.
 
 Implementing — memory is on call, not a per-step gate. Re-check before a non-trivial edit or when a contract is in question; do not re-query for every symbol.
 
