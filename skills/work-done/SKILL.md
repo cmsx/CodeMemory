@@ -11,13 +11,20 @@ Read the `work` skill's `core.md` once per session before proceeding (skip if al
 
 1. Run `/work-prime` (basic) — skip if project context already loaded this session.
 2. Read the index in full and the spec parts it references in Контекст и ограничения. Confirm all stages are `[x]` — if not, warn and ask whether the plan is really closing.
-3. Verify everything planned is implemented in code.
-4. Walk the index sections as a checklist, not in bulk. For each Decision / Deviation / Edge case / Open question:
+3. Search memory for the areas this plan covered — to know the existing landscape before consolidating. Staged, separate calls — never mix `query` and `anchors` in one call:
+   - `search anchors: ["entity:<E>"]` — one call per entity in scope of the plan.
+   - `search query: "<feature topic>"` — Russian descriptive words; 1–2 rephrasings; AND-combined; `any_term: true` only on fuzzy recall.
+   - `search anchors: ["file:<path>"]` / `["symbol:<path>::<Name>"]` — one call per file or symbol substantively touched by the plan.
+   - `get_notes` — batched on chosen hits and on all `[[id]]` from the index `## Память`.
+
+   Report: `память: нашёл N, пригодилось k`.
+4. Verify everything planned is implemented in code.
+5. Walk the index sections as a checklist, not in bulk. For each Decision / Deviation / Edge case / Open question:
    - Apply the spec/memory fork from `core.md` § Memory integration.
    - Memory capture — run `/mem`. At finalize, additionally consolidate and cross-link stage-level notes, and add feature-level notes that only make sense now.
    - Edge cases not covered in code/tests — raise before closing.
    - Open questions still open — warn.
-5. Ambiguous places — ask the user. Do not apply spec edits without confirmation.
-6. Once spec and memory are updated and confirmed — change `status: active` to `status: completed` in the index frontmatter.
-7. Do not delete plan files — deletion is manual.
-8. Report: spec updated in N places, N notes to memory, plan completed, files left for manual deletion.
+6. Ambiguous places — ask the user. Do not apply spec edits without confirmation.
+7. Once spec and memory are updated and confirmed — change `status: active` to `status: completed` in the index frontmatter.
+8. Do not delete plan files — deletion is manual.
+9. Report: spec updated in N places, N notes to memory, plan completed, files left for manual deletion.

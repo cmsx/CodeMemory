@@ -14,10 +14,22 @@ Read the `work` skill's `core.md` once per session before proceeding (skip if al
 3. **Reality check:** scan the codebase and `git log` for done-but-unchecked stages, or checked stages with no trace in code. Anything off — report and ask before proceeding.
 4. Find the current stage.
 5. Read the current step file in full, including `## Working notes`.
-6. `search` the stage's area before editing per the `mem` skill's `core.md` (`entity:` then `file:`); resolve via `get_notes` the index `## Память` pointers relevant to this stage. Report the one-line status `память: нашёл N, пригодилось k`. Honor any `stale` anchor or `critical` note.
+6. Search memory for the stage's area before editing. Staged, separate calls — never mix `query` and `anchors` in one call:
+   - `search anchors: ["entity:<E>"]` — one call per entity the stage touches.
+   - `search query: "<тема стадии>"` — Russian descriptive words, 1–2 rephrasings; AND-combined; `any_term: true` only on fuzzy recall.
+   - `search anchors: ["file:<path>"]` — one call per file the stage will edit.
+   - `search anchors: ["symbol:<path>::<Name>"]` — one call per symbol to be changed.
+   - `get_notes` — batched on chosen `[[id]]` from the hits above and on relevant `## Память` pointers from the index.
+
+   Honor any `stale` anchor or `critical` note. Report: `память: нашёл N, пригодилось k`.
 7. Step file has `[x]` sub-tasks — work was interrupted. Continue from the first unchecked sub-task, do not restart.
 8. Report briefly: which plan, which stage, interrupted-work signs, the session plan.
-9. Work the stage. On entering a sub-task whose file/symbol area was not yet searched this session, `search` memory first and report the one-line status `память: нашёл N, пригодилось k`. Check off `[x]` sub-tasks as you go; write Working notes along the way, recording the `[[id]]` of notes that genuinely added understanding — not every note found.
+9. Work the stage. On entering a sub-task whose file/symbol area was not yet searched this session, search memory first — separate calls, never mixed:
+   - `search anchors: ["file:<path>"]` — one call per file the sub-task will touch.
+   - `search anchors: ["symbol:<path>::<Name>"]` — one call per symbol to be changed.
+   - `get_notes` — batched on chosen hits.
+
+   Report: `память: нашёл N, пригодилось k`. Then proceed: check off `[x]` sub-tasks as you go; write Working notes along the way, recording the `[[id]]` of notes that genuinely added understanding — not every note found.
 10. Before pausing or ending a turn — reconcile the step file: every done sub-task `[x]`, every needed Working note present.
 
 Do not capture to memory mid-stage — capture is owned by `/work-step-done`.
