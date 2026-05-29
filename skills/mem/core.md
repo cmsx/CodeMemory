@@ -35,7 +35,7 @@ Anchored search is exact-match. Search every level the work touches, as separate
 - env variable — `search anchors: ["env:VAR"]`
 - large file — `list_symbols_in_file`, then targeted `Read` of the symbol range, not the whole file
 
-Order: entity → text → file → symbol. Do not collapse stages into one mixed call. Text search — try 1–2 rephrasings.
+ALWAYS make a separate `search` call per anchor and per stage; the order is entity → text → file → symbol. Do not pass `query` and `anchors` to the same call. Do not pack multiple anchors into one call. Text search — try 1–2 rephrasings.
 
 Text `query` — notes are written in Russian, so write the descriptive words of the query in Russian; a query in a different language than the note prose finds nothing. Literal code identifiers (class, function, variable names) stay as written in the code. Russian terms are stemmed and prefix-matched on the search side — write natural words, do not hand-pick roots. Terms combine as AND by default — keep the query to the few key words. Unsure of the exact wording (fuzzy recall) → `any_term: true` to match any term; BM25 still ranks the densest hit first.
 
@@ -96,7 +96,6 @@ To rename or remove a mistaken entity — edit `.memory/entities.md` directly; t
 
 ## Antipatterns
 
-- Collapsing the entity → text → file → symbol stages into one mixed `search` call.
 - Re-querying memory for every symbol during implementation, once the scope is understood.
 - Expanding all `get_notes` results instead of picking by `summary`.
 - Capturing a note with no reasoning.

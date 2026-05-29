@@ -144,18 +144,21 @@ MCP-инструменты `code-memory`, в `.memory/notes/` напрямую �
 > `/work-*` встроенно опрашивает память на планировании и фиксирует знание
 > через `/mem` по ходу работы. Описание — в [`docs/work-workflow.md`](docs/work-workflow.md).
 
-### Рекомендация для `CLAUDE.md` целевого проекта
+### Recommended `CLAUDE.md` for the target project
 
-В `CLAUDE.md` целевого проекта стоит закрепить установку — коротким указателем,
-**не пересказывая содержание скиллов**:
+The target project's root `CLAUDE.md` should carry an **always-loaded layer**:
+memory-reading rules (horizontal, ambient — activated by topic) plus a short
+index of `/mem` and `/work-*` commands (vertical procedures stay as skills
+and activate by explicit slash-command).
 
-> Знание о коде ведём через скиллы `mem` и `/work-*` и их подход. Поиск
-> в памяти (`code-memory`) — не разовый шаг на старте сессии, а постоянная
-> часть работы: перед каждой новой задачей, файлом, веткой решения. Дойти до
-> чтения кода, не свериться с памятью, — ошибка.
+A ready-made template — in [`docs/claude.md`](docs/claude.md). Copy verbatim
+or merge into the project's existing `CLAUDE.md`.
 
-Скилл остаётся носителем процедуры; строка в `CLAUDE.md` лишь не даёт про неё
-забыть и держит акцент на постоянном, а не разовом использовании памяти.
+Rationale for the split: ambient rules without an explicit command trigger get
+skipped inside skills (see Vercel's "AGENTS.md vs Skills" evals — skills not
+invoked in 56% of cases). The always-loaded layer closes that gap. Procedures
+with an explicit slash-command are more reliable as skills — a verbatim dump
+of them into `CLAUDE.md` would break the command-procedural mode.
 
 ### MCP-инструменты
 

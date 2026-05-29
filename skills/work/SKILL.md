@@ -31,6 +31,7 @@ Read the `work` skill's `core.md` once per session before proceeding (skip if al
 
    Report: `память: нашёл N, пригодилось k`. Then proceed: check off `[x]` sub-tasks as you go; write Working notes along the way, recording the `[[id]]` of notes that genuinely added understanding — not every note found.
 10. Before pausing or ending a turn — reconcile the step file: every done sub-task `[x]`, every needed Working note present.
+11. Stage finished (sub-tasks `[x]`, Definition of done met) — run the full project test suite. ALL tests must pass. Do not advance to `/work-step-done` with any failing or skipped test; fix within the stage, or raise if the failure is out of scope.
 
 Do not capture to memory mid-stage — capture is owned by `/work-step-done`.
 
