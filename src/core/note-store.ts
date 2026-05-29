@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import matter from "gray-matter";
@@ -24,6 +25,25 @@ export interface Note {
 const STATUSES = new Set<string>(["current", "outdated", "draft"]);
 const WEIGHTS = new Set<string>(["critical", "core", "supporting", "incidental"]);
 const ANCHOR_TYPES = new Set<string>(["file", "symbol", "entity", "env"]);
+
+// Note IDs are short server-generated hashes: 5 lowercase base36 chars,
+// no date, no slug. The LLM never invents one — create_note returns it.
+export const NOTE_ID_RE = /^[a-z0-9]{5}$/;
+const ID_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
+const ID_LENGTH = 5;
+
+export function isValidNoteId(id: string): boolean {
+  return NOTE_ID_RE.test(id);
+}
+
+export function generateNoteId(): string {
+  const bytes = randomBytes(ID_LENGTH);
+  let id = "";
+  for (let i = 0; i < ID_LENGTH; i++) {
+    id += ID_ALPHABET[bytes[i] % ID_ALPHABET.length];
+  }
+  return id;
+}
 
 export function anchorType(uri: string): AnchorType {
   const colonIdx = uri.indexOf(":");

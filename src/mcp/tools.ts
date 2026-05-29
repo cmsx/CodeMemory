@@ -27,11 +27,11 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
         context: z.array(z.string()).optional(),
         include_archived: z.boolean().optional(),
         include_drafts: z.boolean().optional(),
-        any_term: z
+        strict: z
           .boolean()
           .optional()
           .describe(
-            "Text query: match ANY term instead of ALL. Default (omitted) requires every term — precise. Set true for fuzzy recall when unsure of the exact wording; BM25 still ranks the densest match first.",
+            "Text query: require EVERY term (AND) instead of the default ANY (OR). Default (omitted) is broad recall — any term qualifies, BM25 ranks the densest match first. Set true to narrow to notes mentioning all terms when an OR sweep is too noisy.",
           ),
         // Standard parameter, intentionally left without a .describe() and
         // absent from the tool description: routine work uses targeted search.
@@ -45,7 +45,7 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
       context,
       include_archived,
       include_drafts,
-      any_term,
+      strict,
       match_all,
       limit,
     }) => {
@@ -56,7 +56,7 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
           context,
           include_archived,
           include_drafts,
-          any_term,
+          strict,
           match_all,
           limit,
         }),
@@ -80,7 +80,8 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
   server.registerTool(
     "create_note",
     {
-      description: "Capture a new memory note",
+      description:
+        "Capture a new memory note. Do not pass an id — the server generates a short hash id and returns it.",
       inputSchema: {
         summary: z.string(),
         body: z.string(),

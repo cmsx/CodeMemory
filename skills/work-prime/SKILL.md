@@ -1,33 +1,26 @@
 ---
 name: work-prime
-description: Load project context at the start of a session — read the spec and any active /work plan index. Triggered by the explicit command /work-prime (or /work-prime full), and invoked by the other /work commands as their context-loading step.
+description: Loads session context — the project's base specs, the active /work plan index if one exists, and the domain map via list_entities. Use when explicitly invoked as /work-prime, when another /work command runs its context-loading step, or at the start of a session before working on project code.
 ---
 
 # /work-prime — load project context
 
-Read the `work` skill's `core.md` once per session before proceeding (skip if already in context).
+Starts no Mode, proposes no next step. A document load only.
 
-Starts no mode, implies no next step.
-
-Other `/work` commands invoke `/work-prime` as their first step and state the depth. A direct `/work-prime` defaults to basic; `/work-prime full` selects full.
-
-## Depth
-
-- **basic** — spec files at the root of `specs/` only, no subfolders.
-- **full** — all of `specs/` recursively.
+Communicate with the user in Russian. Skill instructions are English — this does not change the output language.
 
 ## Behavior
 
-1. Read spec files at the selected depth.
-2. Active plan (`plans/*-00-index.md`, `status: active`) — read the index only, not step files.
-3. Call `list_entities`. Do **not** `search` here — priming is a document load only; topical search belongs to the work that follows (see the `mem` skill's `core.md`).
-4. Report what was loaded — a short file list, the active plan, and the domain map as a concrete count: `домен-карта: N сущностей`. The count proves `list_entities` ran. No content retelling.
+1. Read the base specs — files at the root of `specs/`, no subfolders.
+2. Active plan — the single `plans/*-00-index.md` with `status: active`. Read its index only, not the step files. More than one `status: active` — list them and load none; the user resolves the active plan when a `/work-*` command runs (priming stays non-blocking).
+3. Call `list_entities` to load the domain map.
+4. Report what loaded: a short file list, the active plan name, and the domain map as a count — `домен-карта: N сущностей`. The count proves `list_entities` ran.
+
+`specs/` empty or absent and no active plan — say so in one line.
 
 ## Do not
 
-- Retell spec content.
-- Ask questions.
-- Propose next steps.
 - Read plan step files or project code.
-
-`specs/` empty or absent and no active plan — say so briefly, propose nothing.
+- `search` memory — priming is a document load; topical search belongs to the work that follows.
+- Retell spec content.
+- Ask questions or propose next steps.

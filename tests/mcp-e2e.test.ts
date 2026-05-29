@@ -168,7 +168,7 @@ describe("write tools over HTTP", () => {
       body: "Тело заметки.",
       anchors: [{ uri: "file:src/order.ts", weight: "core" }],
     }) as { id: string };
-    expect(r.id).toMatch(/^2\d{3}-\d{2}-\d{2}-/);
+    expect(r.id).toMatch(/^[a-z0-9]{5}$/);
 
     const got = await call("get_notes", { ids: [r.id] }) as { notes: { id: string }[]; missing: string[] };
     expect(got.notes).toHaveLength(1);

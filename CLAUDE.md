@@ -1,50 +1,77 @@
-# Code Memory Service
+# Code Memory Service — repo guide
 
-## Specs
+## Что это за репозиторий
 
-Before starting work, read the specification in [`specs/`](specs/), starting
-with [`specs/00-overview.md`](specs/00-overview.md). It records the design and
-implementation nuances that must be accounted for.
+Code Memory Service — MCP-сервис, который хранит знания о коде (ADR-заметки,
+привязанные к коду якорями) и даёт LLM-агенту находить их поиском, не перечитывая
+весь код и документацию. Репозиторий содержит:
 
-## Skills
+- `src/` — исходники сервиса: core-библиотека, MCP-сервер, CLI/TUI.
+- `specs/` — спека сервиса: домен, данные, поиск, интерфейсы, тех-дизайн.
+- `skills/` — корпус скиллов для Claude Code, поставляемый вместе с сервисом
+  (`mem`, `mem-onboarding`, семейство `/work-*`, `/storyteller`, `/mem-explore`).
+- `docs/` — документация: workflow скиллов, методология консьюмера, setup,
+  гайды для контрибьюторов.
 
-Skills live in `skills/` at the repo root — **not** in `.claude/skills/`. They are not loaded when working on this repo; they install into the target project's `.claude/skills/` (copied or linked) and run there.
+Скиллы из `skills/` в этом репозитории **не активны** — это исходники; работают
+они, будучи установленными в `.claude/skills/` целевого проекта.
 
-Cross-references between skills are location-agnostic: name the skill, not a path (e.g. "the `work` skill's `core.md`"), since repo storage and runtime location differ.
+Сам сервис к этому репозиторию **не подключён**: MCP-инструменты (`search`,
+`get_notes`, …) недоступны, поэтому шаги «поиск по памяти» из `/work-*` здесь —
+no-op. Источник истины — `specs/`, `docs/` и файлы плана.
 
-## Writing skills
+## Как здесь работать
 
-A skill says **what to do**, not why. Write it clearly, structurally, imperatively.
+1. Канон: `specs/` (сервис), `docs/workflow/` и `docs/consumer-guide/`
+   (экосистема скиллов и методология).
+2. Задачи разработки ведём через семейство `/work-*` пошагово. Процедура — в
+   `skills/work/` (`SKILL.md` + `core.md`); поскольку скиллы здесь не активны,
+   читаем и исполняем их по тексту.
+3. Планы лежат в `plans/` плоско, `<prefix>-NN-<slug>.md`, прогресс —
+   чек-боксы (первый этап без `[x]` — текущий). Файлы плана — личное
+   пространство разработчика, не коммитятся.
 
-### Style
+Цикл: `/work` → реализация этапа → `/work-step-done` (фиксация рабочих заметок
+в индекс) → `/git commit` → следующий этап.
 
-- Imperative instructions and `case → action` lists. No literary prose, no rationale paragraphs, no rhetoric.
-- No illustrative examples — they explain what is already obvious and burn context. Structural examples are allowed: templates, command forms, URI formats.
-- A short reason fragment is allowed only when it changes a decision in an edge case. If a "why" affects no decision, cut it.
-- No hard line limit — a skill is as long as its content genuinely needs. But terseness applies at every length; do not burn context.
-- Consistent terminology — one term per concept.
-- No time-sensitive info.
+### Работа над скиллами
 
-### Progressive disclosure
+- При создании или правке любого скилла обязательно следование `docs/contributing/skill-writing.md`.
+- По завершению — прогон по чек-листу ревью оттуда и отчёт пользователю.
+  Игнорирование этого подхода ведёт к дефектным скиллам.
+- Свериться с `docs/contributing/skill-core-coverage.md` — он перечисляет
+  обязательные слайсы `core.md` для каждого скилла. При создании/правке скилла
+  пройти по его списку и убедиться, что все нужные слайсы заинлайнены. При
+  правке любого `core.md` — пройти по затронутым скиллам и ресинкнуть слайсы.
 
-- The SKILL.md is always loaded. It must be self-sufficient for the **normal** path.
-- Deferred content (deep rationale, edge-case detail) may go to a companion file, loaded on demand.
-- Split only when the companion content is genuinely doubt-only. If a file would be read on the normal path anyway, splitting wins nothing — keep one file.
-- Every pointer to a companion file carries its trigger condition: "unsure about X → see Y". A pointer with no condition is invisible — the file stays unread.
+## Карта документации
 
-### Description (frontmatter)
+| Где | Что |
+|-----|-----|
+| `specs/` | Спека сервиса (отправная точка — `specs/00-overview.md`) |
+| `docs/workflow/README.md` | Жизненный цикл задачи `/work-*`, обзор экосистемы скиллов |
+| `docs/workflow/skills.md` | Справочник по скиллам: режим, задача, механика |
+| `docs/workflow/context-engineering.md` | Context Drift, Structured CoT, Grounding, Synthesis, Modes, водораздел, `/mem-explore` |
+| `docs/consumer-guide/documentation-system.md` | 6-слойная спека целевого проекта, `RULES.md`, Functional Map |
+| `docs/consumer-guide/user-stories.md` | System-Aware User Stories: концепт + формат |
+| `docs/consumer-guide/formats.md` | Шаблоны плана; указатели на канон заметок (`specs/04`) и историй |
+| `docs/setup/migration-guide.md` | Миграция консьюмера на текущие контракты сервиса |
+| `docs/contributing/skill-writing.md` | Стиль-гайд написания скиллов — обязателен при правке `skills/` |
+| `docs/contributing/skill-core-coverage.md` | Чек-лист обязательных слайсов `core.md` по каждому скиллу |
+| `docs/contributing/manual-testing.md` | Ручной чек-лист для TUI, Docker-развёртывания, онбординга |
 
-The description is the only thing the agent sees when choosing whether to load the skill.
+## Жёсткие инварианты репозитория
 
-- Third person, max ~1024 chars.
-- First sentence — what the skill does.
-- Second sentence — "Use when [specific triggers]": keywords, contexts, file types, or the explicit slash command.
+- Скиллы лежат в `skills/` корня (не в `.claude/skills/`).
+- Кросс-ссылки между скиллами — по имени, не по пути («the `work` skill's
+  `core.md`»), потому что репо-хранение и runtime-расположение разные.
+- При создании или правке файлов любого скилла обязательно следование `docs/contributing/skill-writing.md`.
+- Тексты скиллов на английском; общение с пользователем и все артефакты
+  (планы, заметки, правки спек) — на русском.
 
-### Review checklist
+## Что НЕ делать
 
-- [ ] Description has what-it-does + explicit triggers.
-- [ ] Imperative throughout — no prose, no why-paragraphs, no illustrative examples.
-- [ ] SKILL.md self-sufficient for the normal path.
-- [ ] Companion pointers carry a trigger condition.
-- [ ] Cross-references name the skill, not a path.
-- [ ] Consistent terminology, no time-sensitive info.
+- Не дублировать содержимое `specs/` и `docs/` в этот файл — здесь только
+  указатели.
+- Не запускать сервис/MCP в этом контейнере — для dogfooding-а сервис
+  поднимается в проекте-консьюмере.

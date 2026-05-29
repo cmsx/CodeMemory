@@ -87,6 +87,20 @@ describe("anchor path", () => {
     const result = search(db, { anchors: ["file:src/other.ts"] });
     expect(result.hits).toHaveLength(0);
   });
+
+  it("multiple anchors combine by OR (union), mixed kinds", () => {
+    const notesDir = setup();
+    const a = note({ id: "2024-01-01-a", anchors: [{ uri: "file:src/a.ts", weight: "core" }] });
+    const b = note({ id: "2024-01-01-b", anchors: [{ uri: "entity:Order", weight: "core" }] });
+    const c = note({ id: "2024-01-01-c", anchors: [{ uri: "symbol:src/c.ts::Foo", weight: "core" }] });
+    writeAll(notesDir, [a, b, c]);
+
+    // a note matching ANY of the passed anchors qualifies — no AND across anchors
+    const result = search(db, {
+      anchors: ["file:src/a.ts", "entity:Order", "symbol:src/c.ts::Foo"],
+    });
+    expect(result.hits.map((h) => h.id).sort()).toEqual([a.id, b.id, c.id]);
+  });
 });
 
 // ---- text path --------------------------------------------------------------
@@ -548,7 +562,22 @@ describe("russian stemming", () => {
     expect(search(db, { query: "освобождать резервы" }).hits.map((h) => h.id)).toEqual([n.id]);
   });
 
-  it("AND semantics — every term must match", () => {
+  it("OR semantics by default — one matching term is enough", () => {
+    const notesDir = setup();
+    const n = note({
+      id: "2024-01-01-or",
+      anchors: [{ uri: "entity:Order", weight: "core" }],
+      summary: "Отмена заказа",
+      body: "## Body\n\nОтмена заказа освобождает резерв.",
+    });
+    writeAll(notesDir, [n]);
+
+    // only one of the two terms matches → still found (OR default)
+    expect(search(db, { query: "отмена накладная" }).hits.length).toBe(1);
+    expect(search(db, { query: "отмена резерв" }).hits.length).toBe(1);
+  });
+
+  it("strict — AND semantics, every term must match", () => {
     const notesDir = setup();
     const n = note({
       id: "2024-01-01-and",
@@ -558,21 +587,8 @@ describe("russian stemming", () => {
     });
     writeAll(notesDir, [n]);
 
-    expect(search(db, { query: "отмена резерв" }).hits.length).toBe(1);
-    expect(search(db, { query: "отмена накладная" }).hits.length).toBe(0);
-  });
-
-  it("any_term — OR semantics, one matching term is enough", () => {
-    const notesDir = setup();
-    const n = note({
-      id: "2024-01-01-any",
-      anchors: [{ uri: "entity:Order", weight: "core" }],
-      summary: "Отмена заказа",
-      body: "## Body\n\nОтмена заказа освобождает резерв.",
-    });
-    writeAll(notesDir, [n]);
-
-    expect(search(db, { query: "отмена накладная", any_term: true }).hits.length).toBe(1);
+    expect(search(db, { query: "отмена резерв", strict: true }).hits.length).toBe(1);
+    expect(search(db, { query: "отмена накладная", strict: true }).hits.length).toBe(0);
   });
 });
 

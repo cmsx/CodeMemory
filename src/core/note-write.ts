@@ -6,6 +6,8 @@ import {
   type Note,
   type NoteStatus,
   anchorType,
+  generateNoteId,
+  isValidNoteId,
   listNotes,
   readNote,
 } from "./note-store.js";
@@ -48,17 +50,19 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function slugify(s: string): string {
-  const slug = s
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return slug || "note";
-}
+const MAX_ID_ATTEMPTS = 10;
 
-export function makeNoteId(summary: string, date: string): string {
-  return `${date}-${slugify(summary)}`;
+// IDs are random, so a fresh note never replays onto an existing one. The
+// loop only guards against the rare hash collision; the `.md` on disk is the
+// source of truth for uniqueness. Dedup of overlapping notes is the skill's
+// job (search → update_note), not this writer's.
+function uniqueNoteId(notesDir: string): string {
+  for (let attempt = 0; attempt < MAX_ID_ATTEMPTS; attempt++) {
+    const id = generateNoteId();
+    if (!isValidNoteId(id)) continue;
+    if (!existsSync(join(notesDir, id + ".md"))) return id;
+  }
+  throw new Error("could not generate a unique note id");
 }
 
 function validateAnchors(db: DatabaseSync, anchors: Anchor[]): void {
@@ -87,14 +91,11 @@ export function createNote(
   opts?: LockOpts,
 ): Note {
   const notesDir = join(memoryDir, "notes");
-  const id = makeNoteId(summary, now);
   return withLock(
     memoryDir,
     () => {
-      if (existsSync(join(notesDir, id + ".md"))) {
-        return readNote(notesDir, id);
-      }
       validateAnchors(db, anchors);
+      const id = uniqueNoteId(notesDir);
       const note: Note = { id, summary, status, created: now, updated: now, anchors, body };
       writeNoteIndexed(db, notesDir, note);
       return note;

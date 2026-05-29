@@ -27,10 +27,13 @@ export interface SearchParams {
   // description or the `mem` skill: routine work uses targeted search, and
   // surfacing match_all there invites it as a corner-cutting shortcut.
   match_all?: boolean;
-  // Text query: combine terms with OR instead of the default AND. For fuzzy
-  // recall when the exact wording is uncertain — BM25 still ranks dense
-  // matches on top. Default (AND) is the precise, correct-by-default mode.
-  any_term?: boolean;
+  // Text query: require EVERY term (AND) instead of the default ANY (OR).
+  // Default (OR) is the broad-recall mode — BM25 ranks the densest match on
+  // top regardless. `strict` narrows to notes mentioning all terms; useful
+  // when an OR sweep returns too much noise. (FTS5 cannot do a true stemmed
+  // phrase — prefix tokens inside a quoted phrase match nothing — so `strict`
+  // is AND, not an adjacency phrase.)
+  strict?: boolean;
   limit?: number;
 }
 
@@ -131,10 +134,11 @@ export function search(db: DatabaseSync, params: SearchParams): SearchResult {
     if (tokens && tokens.length > 0) {
       // Stem each term and match it as a prefix: Russian inflection is
       // suffixal, so a `stem*` query catches every form in the unstemmed
-      // index. Terms join with implicit AND (space) unless `any_term`.
+      // index. Terms join with OR by default (broad recall); `strict` joins
+      // with implicit AND (space) so every term is required.
       const matchStr = tokens
         .map((t) => stemRussian(t.toLowerCase()) + "*")
-        .join(params.any_term ? " OR " : " ");
+        .join(params.strict ? " " : " OR ");
       // Pure FTS5 query — no join/subquery so bm25() works correctly.
       // Status filtering done below via a separate lookup.
       const statusSet = new Set(statuses);

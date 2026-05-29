@@ -159,7 +159,7 @@ describe("Story 03 — capture после нетривиальной задач�
       status: "current",
     })) as { id: string };
 
-    expect(r.id).toMatch(/^2\d{3}-\d{2}-\d{2}-/);
+    expect(r.id).toMatch(/^[a-z0-9]{5}$/);
 
     // .md-файл создан на диске
     expect(existsSync(join(h.dir, ".memory", "notes", `${r.id}.md`))).toBe(true);
@@ -249,7 +249,6 @@ describe("Story 04 — поиск по смутному воспоминанию
   it("текстовый поиск возвращает несколько хитов, лидер — наиболее релевантный", async () => {
     const r = (await h.call("search", {
       query: "повтор запрос backoff",
-      any_term: true,
     })) as {
       hits: { id: string; summary: string }[];
       total: number;

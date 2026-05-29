@@ -23,9 +23,9 @@ import { copyFixtureProject } from "./helpers/fixture-project.js";
 // Шов CLI-парсер↔core — cli.test.ts: buildProgram().parseAsync including
 // anchor-only search (regression for search-bug). Deepened in cmt-04.
 //
-// createNote idempotency (same summary) — core-write.test.ts:78: real
-// withLock+writeNoteIndexed chain. slug collision tested below (distinct
-// summaries → same id, not covered there).
+// createNote with server-generated ids — core-write.test.ts: repeated
+// capture of identical content yields distinct notes (no replay no-op).
+// Distinct-ids flow over a real withLock+writeNoteIndexed chain tested below.
 //
 // Inter-process lock contention — core-write.test.ts:320: LockTimeoutError
 // against live pid 1. In-process serialisation tested below (Test 6).
@@ -58,20 +58,20 @@ describe("flow: createNote → search → getNotes", () => {
     const body = "## Details\n\nSeam flow integration test note.\n\n[[2026-05-08-float-pricing]]";
 
     const note = createNote(db, memoryDir, "Seam flow note", body, anchors, "current", "2026-05-16");
-    expect(note.id).toBe("2026-05-16-seam-flow-note");
+    expect(note.id).toMatch(/^[a-z0-9]{5}$/);
 
     verifyAnchors(db, dir);
 
     // Text search finds the new note
     const byText = search(db, { query: "seam flow" });
-    expect(byText.hits.some((h) => h.id === "2026-05-16-seam-flow-note")).toBe(true);
+    expect(byText.hits.some((h) => h.id === note.id)).toBe(true);
 
     // Anchor-only search finds the new note (critical pin guarantees inclusion)
     const byAnchor = search(db, { anchors: ["file:src/order.ts"] });
-    expect(byAnchor.hits.some((h) => h.id === "2026-05-16-seam-flow-note")).toBe(true);
+    expect(byAnchor.hits.some((h) => h.id === note.id)).toBe(true);
 
     // getNotes expands it with anchor map and [[id]] mentions
-    const { notes, missing } = getNotes(db, ["2026-05-16-seam-flow-note"]);
+    const { notes, missing } = getNotes(db, [note.id]);
     expect(missing).toHaveLength(0);
     expect(notes).toHaveLength(1);
 
@@ -99,9 +99,9 @@ describe("flow: createNote → search → getNotes", () => {
   });
 });
 
-// ── Test 2: slug collision — distinct summaries → same id ────────────────────
+// ── Test 2: identical content → distinct ids, separate notes ─────────────────
 
-describe("slug collision: distinct summaries slugify to same id → no-op", () => {
+describe("repeated capture of identical content yields distinct notes", () => {
   let dir: string;
   let db: DatabaseSync;
 
@@ -110,7 +110,7 @@ describe("slug collision: distinct summaries slugify to same id → no-op", () =
     rmSync(dir, { recursive: true, force: true });
   });
 
-  it("second createNote with colliding slug returns the first note unchanged", () => {
+  it("two createNote calls with the same summary+body get distinct ids and two files", () => {
     dir = copyFixtureProject();
     const memoryDir = join(dir, ".memory");
     db = openIndex(join(memoryDir, "index.db"));
@@ -119,20 +119,17 @@ describe("slug collision: distinct summaries slugify to same id → no-op", () =
     const body = "## Body\n\nContent.";
 
     const n1 = createNote(db, memoryDir, "Cache fix", body, anchors, "current", "2026-05-16");
-    expect(n1.id).toBe("2026-05-16-cache-fix");
+    const n2 = createNote(db, memoryDir, "Cache fix", body, anchors, "current", "2026-05-16");
 
-    // "Cache fix!!!" slugifies to "cache-fix" — same id as "Cache fix"
-    const n2 = createNote(db, memoryDir, "Cache fix!!!", body, anchors, "current", "2026-05-16");
-    expect(n2.id).toBe(n1.id);
-    expect(n2.summary).toBe("Cache fix"); // returned the first note, not the second
+    // Server-generated ids — no replay no-op, the second is a separate note
+    expect(n1.id).toMatch(/^[a-z0-9]{5}$/);
+    expect(n2.id).toMatch(/^[a-z0-9]{5}$/);
+    expect(n2.id).not.toBe(n1.id);
 
-    // Only one row in index
-    const count = (db.prepare("SELECT COUNT(*) AS n FROM notes WHERE id = ?").get(n1.id) as { n: number }).n;
-    expect(count).toBe(1);
-
-    // Only one .md on disk
-    expect(existsSync(join(memoryDir, "notes", "2026-05-16-cache-fix.md"))).toBe(true);
-    expect(existsSync(join(memoryDir, "notes", "2026-05-16-cache-fix---.md"))).toBe(false);
+    // Both rows in index, both files on disk
+    expect((db.prepare("SELECT COUNT(*) AS n FROM notes WHERE summary = ?").get("Cache fix") as { n: number }).n).toBe(2);
+    expect(existsSync(join(memoryDir, "notes", n1.id + ".md"))).toBe(true);
+    expect(existsSync(join(memoryDir, "notes", n2.id + ".md"))).toBe(true);
   });
 });
 
@@ -342,12 +339,13 @@ describe("in-process lock serialisation: sequential createNote calls", () => {
     const n1 = createNote(db, memoryDir, "Lock alpha", body, anchors, "current", "2026-05-16");
     const n2 = createNote(db, memoryDir, "Lock beta", body, anchors, "current", "2026-05-16");
 
-    expect(n1.id).toBe("2026-05-16-lock-alpha");
-    expect(n2.id).toBe("2026-05-16-lock-beta");
+    expect(n1.id).toMatch(/^[a-z0-9]{5}$/);
+    expect(n2.id).toMatch(/^[a-z0-9]{5}$/);
+    expect(n2.id).not.toBe(n1.id);
 
     // Both .md files on disk
-    expect(existsSync(join(memoryDir, "notes", "2026-05-16-lock-alpha.md"))).toBe(true);
-    expect(existsSync(join(memoryDir, "notes", "2026-05-16-lock-beta.md"))).toBe(true);
+    expect(existsSync(join(memoryDir, "notes", n1.id + ".md"))).toBe(true);
+    expect(existsSync(join(memoryDir, "notes", n2.id + ".md"))).toBe(true);
 
     // Both rows in index
     const rows = db.prepare("SELECT id FROM notes WHERE id IN (?,?)").all(n1.id, n2.id);

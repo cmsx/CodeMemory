@@ -109,7 +109,7 @@ describe("tool shapes (InMemory)", () => {
       body: "Body text",
       anchors: [{ uri: "file:src/main.ts", weight: "core" }],
     }) as { id: string };
-    expect(r.id).toMatch(/^2\d{3}-\d{2}-\d{2}-new-note$/);
+    expect(r.id).toMatch(/^[a-z0-9]{5}$/);
   });
 
   it("create_note warns when anchors cover only one axis", async () => {

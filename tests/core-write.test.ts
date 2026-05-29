@@ -11,33 +11,13 @@ import {
   anchorCoverageWarning,
   createNote,
   deleteNote,
-  makeNoteId,
   renameAnchor,
-  slugify,
   updateNote,
 } from "../src/core/note-write.js";
-import { readNote } from "../src/core/note-store.js";
+import { NOTE_ID_RE, readNote } from "../src/core/note-store.js";
 
 const BODY = "## What was done\n\nFixed token caching.";
 const ANCHORS = [{ uri: "file:src/auth.ts", weight: "core" as const }];
-
-describe("slugify / makeNoteId", () => {
-  it("lowercases and replaces non-alphanum with dashes", () => {
-    expect(slugify("Fixed Auth Middleware Bug")).toBe("fixed-auth-middleware-bug");
-  });
-
-  it("collapses consecutive separators", () => {
-    expect(slugify("hello   world!!")).toBe("hello-world");
-  });
-
-  it("falls back to 'note' for empty result", () => {
-    expect(slugify("!!!")).toBe("note");
-  });
-
-  it("makeNoteId combines date and slug", () => {
-    expect(makeNoteId("Auth fix", "2024-01-15")).toBe("2024-01-15-auth-fix");
-  });
-});
 
 describe("createNote", () => {
   let dir: string;
@@ -58,40 +38,40 @@ describe("createNote", () => {
     return (db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n;
   }
 
-  it("creates .md file with id YYYY-MM-DD-slug", () => {
+  it("creates .md file with a server-generated hash id", () => {
     const { memoryDir, notesDir } = setup();
     const note = createNote(db, memoryDir, "Auth fix", BODY, ANCHORS, "current", "2024-01-01");
-    expect(note.id).toBe("2024-01-01-auth-fix");
-    expect(existsSync(join(notesDir, "2024-01-01-auth-fix.md"))).toBe(true);
+    expect(note.id).toMatch(NOTE_ID_RE);
+    expect(existsSync(join(notesDir, note.id + ".md"))).toBe(true);
   });
 
   it("indexes note and anchors in SQLite", () => {
     const { memoryDir } = setup();
-    createNote(db, memoryDir, "Auth fix", BODY, ANCHORS, "current", "2024-01-01");
+    const note = createNote(db, memoryDir, "Auth fix", BODY, ANCHORS, "current", "2024-01-01");
     expect(countRows("notes")).toBe(1);
     expect(countRows("anchors")).toBe(1);
     const row = db.prepare("SELECT id FROM notes_fts WHERE notes_fts MATCH ?").get("caching") as
       | { id: string }
       | undefined;
-    expect(row?.id).toBe("2024-01-01-auth-fix");
+    expect(row?.id).toBe(note.id);
   });
 
-  it("idempotent: second call with same summary+now → no-op, no duplicates", () => {
+  it("repeated capture of same content creates distinct notes (no replay no-op)", () => {
     const { memoryDir } = setup();
     const n1 = createNote(db, memoryDir, "Auth fix", BODY, ANCHORS, "current", "2024-01-01");
     const n2 = createNote(db, memoryDir, "Auth fix", BODY, ANCHORS, "current", "2024-01-01");
-    expect(n1.id).toBe(n2.id);
-    expect(countRows("notes")).toBe(1);
-    expect(countRows("anchors")).toBe(1);
+    expect(n2.id).not.toBe(n1.id);
+    expect(countRows("notes")).toBe(2);
+    expect(countRows("anchors")).toBe(2);
   });
 
   it("rejects entity: anchor for unregistered entity", () => {
-    const { memoryDir, notesDir } = setup();
+    const { memoryDir } = setup();
     const anchors = [{ uri: "entity:Foo", weight: "core" as const }];
     expect(() =>
       createNote(db, memoryDir, "Auth fix", BODY, anchors, "current", "2024-01-01"),
     ).toThrow(UnregisteredEntityError);
-    expect(existsSync(join(notesDir, "2024-01-01-auth-fix.md"))).toBe(false);
+    expect(countRows("notes")).toBe(0);
   });
 
   it("accepts entity: anchor after entity is registered", () => {
@@ -135,8 +115,8 @@ describe("updateNote", () => {
     dir = mkdtempSync(join(tmpdir(), "cms-un-"));
     db = openIndex(join(dir, "index.db"));
     const memoryDir = dir;
-    createNote(db, memoryDir, "Auth fix", BODY, ANCHORS, "current", "2024-01-01");
-    return { memoryDir, id: "2024-01-01-auth-fix" };
+    const note = createNote(db, memoryDir, "Auth fix", BODY, ANCHORS, "current", "2024-01-01");
+    return { memoryDir, id: note.id };
   }
 
   it("updates body and bumps updated, preserves created and summary", () => {
@@ -216,10 +196,10 @@ describe("renameAnchor", () => {
     dir = mkdtempSync(join(tmpdir(), "cms-ra-"));
     db = openIndex(join(dir, "index.db"));
     const memoryDir = dir;
-    createNote(db, memoryDir, "Note A", BODY, [{ uri: "file:old.ts", weight: "core" as const }], "current", "2024-01-01");
-    createNote(db, memoryDir, "Note B", BODY, [{ uri: "file:old.ts", weight: "supporting" as const }, { uri: "file:other.ts", weight: "core" as const }], "current", "2024-01-02");
-    createNote(db, memoryDir, "Note C", BODY, [{ uri: "file:other.ts", weight: "core" as const }], "current", "2024-01-03");
-    return { memoryDir };
+    const a = createNote(db, memoryDir, "Note A", BODY, [{ uri: "file:old.ts", weight: "core" as const }], "current", "2024-01-01").id;
+    const b = createNote(db, memoryDir, "Note B", BODY, [{ uri: "file:old.ts", weight: "supporting" as const }, { uri: "file:other.ts", weight: "core" as const }], "current", "2024-01-02").id;
+    const c = createNote(db, memoryDir, "Note C", BODY, [{ uri: "file:other.ts", weight: "core" as const }], "current", "2024-01-03").id;
+    return { memoryDir, a, b, c };
   }
 
   it("returns count of affected notes", () => {
@@ -229,14 +209,14 @@ describe("renameAnchor", () => {
   });
 
   it("updates URI in .md files and in anchors table", () => {
-    const { memoryDir } = setup();
+    const { memoryDir, a: idA, b: idB } = setup();
     renameAnchor(db, memoryDir, "file:old.ts", "file:renamed.ts");
 
     const notesDir = join(memoryDir, "notes");
-    const a = readNote(notesDir, "2024-01-01-note-a");
+    const a = readNote(notesDir, idA);
     expect(a.anchors[0].uri).toBe("file:renamed.ts");
 
-    const b = readNote(notesDir, "2024-01-02-note-b");
+    const b = readNote(notesDir, idB);
     const renamed = b.anchors.find((x) => x.uri === "file:renamed.ts");
     expect(renamed).toBeDefined();
     expect(b.anchors.find((x) => x.uri === "file:old.ts")).toBeUndefined();
@@ -251,11 +231,11 @@ describe("renameAnchor", () => {
   });
 
   it("does not touch notes without oldUri", () => {
-    const { memoryDir } = setup();
+    const { memoryDir, c: idC } = setup();
     const notesDir = join(memoryDir, "notes");
-    const before = readNote(notesDir, "2024-01-03-note-c");
+    const before = readNote(notesDir, idC);
     renameAnchor(db, memoryDir, "file:old.ts", "file:renamed.ts");
-    const after = readNote(notesDir, "2024-01-03-note-c");
+    const after = readNote(notesDir, idC);
     expect(after.anchors).toEqual(before.anchors);
   });
 
@@ -265,11 +245,11 @@ describe("renameAnchor", () => {
   });
 
   it("does not bump updated on renamed notes", () => {
-    const { memoryDir } = setup();
+    const { memoryDir, a: idA } = setup();
     const notesDir = join(memoryDir, "notes");
-    const before = readNote(notesDir, "2024-01-01-note-a");
+    const before = readNote(notesDir, idA);
     renameAnchor(db, memoryDir, "file:old.ts", "file:renamed.ts");
-    const after = readNote(notesDir, "2024-01-01-note-a");
+    const after = readNote(notesDir, idA);
     expect(after.updated).toBe(before.updated);
   });
 

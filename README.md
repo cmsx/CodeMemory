@@ -9,6 +9,20 @@
 [`specs/00-overview.md`](specs/00-overview.md). Сценарии использования —
 в [`specs/stories/`](specs/stories/).
 
+## Документация
+
+- **[`specs/`](specs/)** — дизайн сервиса: сервер, данные, поиск, MCP/CLI,
+  тех-видение. Старт — [`specs/00-overview.md`](specs/00-overview.md).
+- **[`docs/workflow/`](docs/workflow/)** — экосистема скиллов: жизненный цикл
+  задачи, справочник по 10 скиллам, принципы context engineering.
+- **[`docs/consumer-guide/`](docs/consumer-guide/)** — как обустроить
+  документацию целевого проекта: 6-слойная спека, `RULES.md`, System-Aware
+  Stories, форматы артефактов.
+- **[`docs/setup/`](docs/setup/)** — подключение в проект: миграция
+  консьюмера 1.x → 2.0.
+- **[`docs/contributing/`](docs/contributing/)** — для разработки сервиса и
+  скиллов: стиль скиллов, coverage-чек-лист, ручное тестирование.
+
 ## Как устроено
 
 - **Source of truth** — markdown-заметки в `.memory/` внутри репозитория проекта
@@ -142,23 +156,7 @@ MCP-инструменты `code-memory`, в `.memory/notes/` напрямую �
 > и пошаговое выполнение задач разработки с планом, переживающим сессии. Это
 > рекомендованный способ задействовать память и планирование органично:
 > `/work-*` встроенно опрашивает память на планировании и фиксирует знание
-> через `/mem` по ходу работы. Описание — в [`docs/work-workflow.md`](docs/work-workflow.md).
-
-### Recommended `CLAUDE.md` for the target project
-
-The target project's root `CLAUDE.md` should carry an **always-loaded layer**:
-memory-reading rules (horizontal, ambient — activated by topic) plus a short
-index of `/mem` and `/work-*` commands (vertical procedures stay as skills
-and activate by explicit slash-command).
-
-A ready-made template — in [`docs/claude.md`](docs/claude.md). Copy verbatim
-or merge into the project's existing `CLAUDE.md`.
-
-Rationale for the split: ambient rules without an explicit command trigger get
-skipped inside skills (see Vercel's "AGENTS.md vs Skills" evals — skills not
-invoked in 56% of cases). The always-loaded layer closes that gap. Procedures
-with an explicit slash-command are more reliable as skills — a verbatim dump
-of them into `CLAUDE.md` would break the command-procedural mode.
+> через `/mem` по ходу работы. Описание — в [`docs/workflow/`](docs/workflow/).
 
 ### MCP-инструменты
 
