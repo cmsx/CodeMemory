@@ -99,6 +99,14 @@ const EXT_TO_LANG: Record<string, string> = {
   ".rs": "rust",
 };
 
+// Vue SFC: not a tree-sitter grammar of its own — we extract the <script>
+// block(s) and parse their contents with the JS/TS grammar.
+const VUE_EXT = ".vue";
+
+function isIndexable(ext: string): boolean {
+  return ext === VUE_EXT || EXT_TO_LANG[ext] !== undefined;
+}
+
 // JS/TS/TSX languages where we also extract arrow-const functions
 const ARROW_LANGS = new Set(["javascript", "typescript", "tsx"]);
 
@@ -149,11 +157,39 @@ function nodeParent(node: Parser.SyntaxNode, defTypes: Set<string>): string | nu
   return null;
 }
 
-async function extractSymbols(relPath: string, source: string): Promise<SymbolRow[]> {
-  const ext = extname(relPath).toLowerCase();
-  const langKey = EXT_TO_LANG[ext];
-  if (!langKey) return [];
+// Extract <script> / <script setup> blocks from a Vue SFC. Each block carries
+// its JS/TS lang and the 0-based line offset of its first content line, so
+// symbol line numbers map back to the .vue file.
+function extractVueScripts(
+  source: string
+): { langKey: string; content: string; lineOffset: number }[] {
+  const blocks: { langKey: string; content: string; lineOffset: number }[] = [];
+  const re = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(source)) !== null) {
+    const attrs = m[1];
+    const content = m[2];
+    const langMatch = attrs.match(/\blang\s*=\s*["']([^"']+)["']/i);
+    const lang = (langMatch?.[1] ?? "js").toLowerCase();
+    const langKey =
+      lang === "ts" || lang === "typescript"
+        ? "typescript"
+        : lang === "tsx"
+          ? "tsx"
+          : "javascript";
+    // Content starts right after the opening tag `<script${attrs}>`.
+    const openTagLen = "<script".length + attrs.length + ">".length;
+    const contentStart = m.index + openTagLen;
+    let lineOffset = 0;
+    for (let i = 0; i < contentStart; i++) {
+      if (source.charCodeAt(i) === 10 /* \n */) lineOffset++;
+    }
+    blocks.push({ langKey, content, lineOffset });
+  }
+  return blocks;
+}
 
+async function parseSymbols(langKey: string, source: string): Promise<SymbolRow[]> {
   const cfg = LANGS[langKey];
   const parser = await getParser(langKey);
   const tree = parser.parse(source);
@@ -200,6 +236,28 @@ async function extractSymbols(relPath: string, source: string): Promise<SymbolRo
   return rows;
 }
 
+async function extractSymbols(relPath: string, source: string): Promise<SymbolRow[]> {
+  const ext = extname(relPath).toLowerCase();
+
+  if (ext === VUE_EXT) {
+    const out: SymbolRow[] = [];
+    for (const blk of extractVueScripts(source)) {
+      for (const r of await parseSymbols(blk.langKey, blk.content)) {
+        out.push({
+          ...r,
+          startLine: r.startLine + blk.lineOffset,
+          endLine: r.endLine + blk.lineOffset,
+        });
+      }
+    }
+    return out;
+  }
+
+  const langKey = EXT_TO_LANG[ext];
+  if (!langKey) return [];
+  return parseSymbols(langKey, source);
+}
+
 export const ALWAYS_SKIP = new Set([".git", ".memory"]);
 
 export function createIgnoreFilter(projectRoot: string): (rel: string) => boolean {
@@ -228,7 +286,7 @@ function listCodeFiles(projectRoot: string): string[] {
       if (entry.isDirectory()) {
         walk(abs);
       } else if (entry.isFile()) {
-        if (EXT_TO_LANG[extname(entry.name).toLowerCase()]) {
+        if (isIndexable(extname(entry.name).toLowerCase())) {
           results.push(rel);
         }
       }
@@ -313,7 +371,7 @@ export async function indexFile(
   relPath: string
 ): Promise<void> {
   const ext = extname(relPath).toLowerCase();
-  if (!EXT_TO_LANG[ext]) return;
+  if (!isIndexable(ext)) return;
 
   const raw = readFileSync(join(projectRoot, relPath), "utf8");
   const h = contentHashFile(raw);

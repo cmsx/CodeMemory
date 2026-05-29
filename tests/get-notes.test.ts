@@ -122,9 +122,9 @@ describe("anchor map stale status", () => {
   });
 });
 
-// 3. entity/env excluded from anchor map
-describe("anchor map excludes entity/env", () => {
-  it("only includes file and symbol anchors", () => {
+// 3. anchor map includes all anchor types (entity/env visible too)
+describe("anchor map includes all anchor types", () => {
+  it("includes file, symbol, entity, and env anchors grouped by weight", () => {
     const { notesDir } = setup();
     writeNoteIndexed(
       db,
@@ -141,8 +141,17 @@ describe("anchor map excludes entity/env", () => {
 
     const { notes } = getNotes(db, ["note-e"]);
     const flat = notes[0].anchorMap.flatMap((g) => g.anchors);
-    expect(flat.every((a) => a.uri.startsWith("file:") || a.uri.startsWith("symbol:"))).toBe(true);
-    expect(flat.map((a) => a.uri)).toEqual(["file:app.ts"]);
+    expect(flat.map((a) => a.uri).sort()).toEqual([
+      "entity:MyService",
+      "env:DATABASE_URL",
+      "file:app.ts",
+    ]);
+    // entity/env appear under their weight group
+    const core = notes[0].anchorMap.find((g) => g.weight === "core");
+    expect(core?.anchors.map((a) => a.uri).sort()).toEqual([
+      "entity:MyService",
+      "file:app.ts",
+    ]);
   });
 });
 

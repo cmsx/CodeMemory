@@ -93,6 +93,40 @@ impl Config {
 }
 `;
 
+const VUE_TS_SOURCE = `<template>
+  <div>{{ title }}</div>
+</template>
+
+<script setup lang="ts">
+import { ref } from "vue";
+
+const count = ref(0);
+
+function increment(): void {
+  count.value++;
+}
+
+const formatTitle = (s: string) => \`[\${s}]\`;
+</script>
+
+<style scoped>
+div { color: red; }
+</style>
+`;
+
+const VUE_JS_OPTIONS_SOURCE = `<template><p /></template>
+
+<script>
+export default {
+  name: "Widget",
+};
+
+function helper() {
+  return 1;
+}
+</script>
+`;
+
 describe("structural-indexer", () => {
   let projectRoot: string;
   let db: DatabaseSync;
@@ -348,6 +382,48 @@ describe("structural-indexer", () => {
     expect(row).toBeDefined();
     expect(row!.start_line).toBeGreaterThanOrEqual(1);
     expect(row!.end_line).toBeGreaterThan(row!.start_line);
+  });
+
+  // ── 12b. Vue SFC <script> extraction ─────────────────────────────────────
+
+  it("indexes symbols from <script setup lang=ts> with correct line offset", async () => {
+    setup();
+    write("Counter.vue", VUE_TS_SOURCE);
+
+    await reconcileStructure(db, projectRoot);
+
+    const syms = symbols("Counter.vue");
+    expect(syms.map(s => s.name)).toContain("increment");
+    expect(syms.map(s => s.name)).toContain("formatTitle");
+    expect(syms.find(s => s.name === "formatTitle")?.kind).toBe("function");
+
+    // Line numbers must point into the .vue file (script block starts at line 5).
+    const inc = db
+      .prepare("SELECT start_line FROM symbol_index WHERE file=? AND name=?")
+      .get("Counter.vue", "increment") as { start_line: number } | undefined;
+    expect(inc).toBeDefined();
+    expect(inc!.start_line).toBeGreaterThan(5);
+    expect(fileHash("Counter.vue")).toBeTruthy();
+  });
+
+  it("indexes plain <script> (Options API) Vue SFC", async () => {
+    setup();
+    write("Widget.vue", VUE_JS_OPTIONS_SOURCE);
+
+    await reconcileStructure(db, projectRoot);
+
+    expect(symbols("Widget.vue").map(s => s.name)).toContain("helper");
+  });
+
+  it("symbol: anchor on .vue resolves after indexing (no longer stale)", async () => {
+    setup();
+    write("Counter.vue", VUE_TS_SOURCE);
+    await reconcileStructure(db, projectRoot);
+
+    const hit = db
+      .prepare("SELECT 1 FROM symbol_index WHERE file=? AND name=? LIMIT 1")
+      .get("Counter.vue", "increment");
+    expect(hit).toBeTruthy();
   });
 
   // ── 13. Idempotent reconcile ──────────────────────────────────────────────

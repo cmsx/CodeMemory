@@ -187,9 +187,9 @@ describe("Story 03 — capture после нетривиальной задач�
     const incGroup = note.anchorMap.find((grp) => grp.weight === "incidental");
     expect(incGroup?.anchors.map((a) => a.uri)).toContain("file:src/cart.js");
 
-    // entity:Cart в anchorMap не попадает (getNotes фильтрует только file/symbol)
+    // entity:Cart виден в anchorMap (getNotes отдаёт все типы якорей)
     const allUris = note.anchorMap.flatMap((grp) => grp.anchors.map((a) => a.uri));
-    expect(allUris).not.toContain("entity:Cart");
+    expect(allUris).toContain("entity:Cart");
 
     // entity-якорь записан корректно — заметка находится через entity:Cart
     const s = (await h.call("search", { anchors: ["entity:Cart"] })) as {

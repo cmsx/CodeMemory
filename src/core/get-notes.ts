@@ -59,7 +59,7 @@ export function getNotes(db: DatabaseSync, ids: string[]): GetNotesResult {
   );
   const anchorStmt = db.prepare(
     `SELECT uri, weight, anchor_status FROM anchors
-     WHERE note_id = ? AND type IN ('file','symbol') ORDER BY id`
+     WHERE note_id = ? ORDER BY id`
   );
 
   const notes: ExpandedNote[] = [];
@@ -75,7 +75,7 @@ export function getNotes(db: DatabaseSync, ids: string[]): GetNotesResult {
       continue;
     }
 
-    // Anchor map — file/symbol only, grouped by WEIGHT_ORDER, non-empty groups only
+    // Anchor map — all anchor types, grouped by WEIGHT_ORDER, non-empty groups only
     const anchorRows = anchorStmt.all(id) as {
       uri: string;
       weight: string;

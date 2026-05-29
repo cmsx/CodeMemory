@@ -103,11 +103,11 @@ describe("read tools over HTTP", () => {
     expect(r.missing).toHaveLength(0);
     const note = r.notes[0];
     expect(note.id).toBe("2026-05-10-order-cancellation-rule");
-    // file/symbol anchors only in anchorMap — entity:Order is excluded by getNotes
+    // anchorMap includes all anchor types — entity:Order is visible too
     const uris = flatAnchorUris(note);
     expect(uris).toContain("symbol:src/order.ts::Order.cancel");
     expect(uris).toContain("file:src/order.ts");
-    expect(uris).not.toContain("entity:Order");
+    expect(uris).toContain("entity:Order");
     // mentioned: [[2026-05-15-status-guard-idea]] is in body (stale=false, it exists)
     expect(note.mentioned.map((m) => m.id)).toContain("2026-05-15-status-guard-idea");
   });
