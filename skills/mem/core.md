@@ -71,9 +71,8 @@ status.
 - Compact `search` list — read whole, pick by `summary`.
 - `get_notes` for chosen `id`s — one call for several; returns the full body
   of each note.
-- `list_symbols_in_file` for a large file before targeted `Read` — pull the
-  symbol map, read the symbol range, not the whole file.
-- Anchor map of a note — coordinates for reading code.
+- To read code, take coordinates from the note's anchor map and the
+  `list_symbols_in_file` symbol map — read the symbol range, not the whole file.
 - `[[id]]` mentioned-notes block — decide by `summary` whether to load via
   `get_notes`.
 - `stale` anchor — show to the user, do not silently ignore.

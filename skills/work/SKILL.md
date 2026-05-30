@@ -32,7 +32,7 @@ Do not capture to memory mid-stage — capture is owned by `/work-step-done`.
 Plan mode active at launch = a design pass over the current stage, reviewed before any code. Run through the implementation, map it onto the architectural decisions already settled (the plan's `## Grounding`, the index Решения, the governing spec), and translate them into concrete code-level decisions. The plan files carry WHAT/WHY at stage granularity; this pass produces the HOW.
 
 1. Read the index and the current step file; ground the stage up front (Grounding an area, below).
-2. Read the files the stage will change and those a decision depends on.
+2. Map the files the stage touches with `list_symbols_in_file`; read the symbol ranges a decision depends on, not whole files.
 3. For each sub-task, decide and state: which files change, the signatures and data structures, the chosen approach, and the test strategy — which states, transitions, and failure paths to cover (Testing discipline, below).
 4. A genuinely trivial stage — justify that explicitly; do not shorten silently.
 
@@ -77,8 +77,7 @@ Each search tied to a discrete unit of work reports a one-line status in chat: `
 
 - Compact `search` list — read whole, pick by `summary`.
 - `get_notes` for chosen `id`s — one call for several; returns the full body of each note.
-- `list_symbols_in_file` for a large file before targeted `Read` — pull the symbol map, read the symbol range, not the whole file.
-- Anchor map of a note — coordinates for reading code.
+- To read code, take coordinates from the note's anchor map and the `list_symbols_in_file` symbol map — read the symbol range, not the whole file.
 - `[[id]]` mentioned-notes block — decide by `summary` whether to load via `get_notes`.
 - `stale` anchor — show to the user, do not silently ignore.
 - `draft` note or `## Гипотезы` section — flag to the user as unverified; verify before acting.
