@@ -117,7 +117,9 @@ the work-side division of labor: **when** each command touches memory.
   relevant to the task, never a whole layer or the whole tree.
 - code memory — "why it is so and how it is built": ADRs, point invariants,
   pitfalls, rejected alternatives, anchored to concrete classes and algorithms.
-  Queried before editing a node.
+  Queried by **anchored search** on the node before editing it — the entity,
+  file, or symbol in hand is the coordinate; **full-text search** only when no
+  such coordinate exists or the anchored search came back empty.
 
 A fact answering "how should the system behave" → `specs/`. A fact answering
 "how we wrote the code to make it work, and where not to step" → memory.
@@ -139,8 +141,9 @@ audit (over-reporting is an antipattern). Two axes:
 On the trigger the model pauses and grounds before proposing — from **both**
 sources per the watershed: it reads the governing spec for the area when that
 spec is deeper than what `/work-prime` loaded (the root specs and the plan
-index), and queries memory for the invariants and pitfalls. Neither source is
-skipped on a horizontal trigger — the focus on memory does not retire the spec.
+index), and queries code memory for its invariants and pitfalls. Neither
+source is skipped on a horizontal trigger — the focus on memory does not
+retire the spec.
 On routine turns inside an already-grounded area the block is omitted.
 `/work-grill`, `/work-update`, and `/work` instruct their concrete reads.
 

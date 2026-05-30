@@ -25,12 +25,12 @@ Onboarding is skill-driven discipline over the ordinary tools (`search`, `get_no
 Feed the source in parts — one pass cannot absorb it all. For each chunk:
 
 1. Read the chunk; determine its entities and files.
-2. `search` the drafted anchors with `include_drafts: true` — earlier-chunk notes are `draft` and a default `search` misses them. Anchor search is exact-match URI equality — pass every level (`file:` + class `symbol:` + member `symbol:` + `env:`) in one OR-call, or a same-scope draft hides at the level you skipped; anchors and `query` stay on separate calls. Report the status line `память: нашёл N, пригодилось k`.
+2. `search` the chunk's anchors with `include_drafts: true` — prior-chunk notes are `draft`, which a default `search` omits. Pass every level (`file:`/`symbol:`/`env:`) in one OR-call; exact-match search misses a same-scope draft at any level skipped. Report the status line `память: нашёл N, пригодилось k`.
 3. Decide: `create_note` with `status: draft` (new knowledge), `update_note` (refine an existing note covering the same scope), or skip (already covered).
 4. Author the note per **Note authoring** below — role structure and both anchor axes.
 5. Drop the raw chunk text before the next chunk.
 
-Raw text is dropped between chunks so one document does not bleed into another's reading; draft notes persist as the cross-chunk working memory, which is why every note is `draft` and every `search` carries `include_drafts`.
+Raw text is dropped between chunks so one document does not bleed into another's reading; the draft notes carry over as the cross-chunk working memory.
 
 ## Note authoring
 

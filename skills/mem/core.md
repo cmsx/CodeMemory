@@ -44,20 +44,21 @@ Re-check before a non-trivial edit or when a contract is in question.
 
 ## Searching
 
-Anchored search is exact-match URI equality — no hierarchy, no containment.
-A `search` call takes two independent axes:
+A `search` call has two paths, each with its own yield — separate calls,
+never two fields of one call.
 
-- **`anchors`** — an arbitrary set of relevant anchors of any kind
-  (`entity:`, `file:`, `symbol:`, `env:` mixed freely). OR by default: the
-  result is the union over the whole set. Pass every relevant anchor in one
-  call. Separate calls are used only when separate ranked lists per anchor
-  are wanted.
-- **`query`** — Russian descriptive words for the topic; 1–2 rephrasings.
-  OR over keywords by default, BM25 ranks the densest hit first.
-  `strict: true` switches to AND — every term must match (stemmed terms,
-  not an exact phrase by position).
+- **Anchored search** (`anchors`) is the precise, information-dense path: it
+  returns the notes pinned to the exact nodes in hand. Anchors of any kind
+  (`entity:`/`file:`/`symbol:`/`env:`) union by OR — pass every relevant
+  anchor in one call. Use it whenever a coordinate is known.
+- **Full-text search** (`query`) is the orienting path — Russian descriptive
+  words, 1–2 rephrasings, BM25 over summary and body, OR by default
+  (`strict: true` for AND on stemmed terms, not a phrase by position). Reach
+  for it when no coordinate is in hand: boundaries still fuzzy, not all
+  relevant anchors known, or the anchored search came back empty.
 
-`query` and `anchors` do not mix in the same call — they are separate axes.
+Mixing the two in one call is an error: the paths rank by different measures,
+so the relevance cut breaks and retrieval comes back incomplete.
 
 Each search tied to a discrete unit of work reports a one-line status in
 chat: `память: нашёл N, пригодилось k` — counts only, no per-note topics.
@@ -93,7 +94,7 @@ Four anchor types; the set is closed.
 - `env:<VAR>` — an environment variable, resolved against the union of all
   `.env*` files.
 
-Connectivity is only through anchors. Anchor search is exact-match URI
+Connectivity is only through anchors. Anchored search is exact-match URI
 equality:
 
 - `symbol:path::Order` does not find a note anchored to
@@ -316,8 +317,8 @@ in-progress onboarding chunks or notes pending review.
   class and file, or a note missing the `entity:` axis.
 - Splitting relevant anchors across separate `search` calls when a single
   OR-call would do — wastes context.
-- Mixing `query` and `anchors` in one call — text and anchor axes stay
-  separate.
+- Mixing `query` and `anchors` in one call — the paths rank by different
+  measures, the relevance cut breaks, retrieval comes back incomplete.
 
 ## Cross-references
 

@@ -23,7 +23,7 @@ Walk these steps in order; the artifact of each is visible before the next.
 2. **Pick the template.** Settled decision / bug-fix / found invariant → **Regular**. Unfamiliar code investigated with no final decision → **Investigation**.
 3. **Classify each piece into a section by criterion** (below), not by the wording of the source thought. One role per section. Omit any section with no content. Tone — declarative, present, terse: "Применяется паттерн X", not "Мы пришли к тому, что…".
 4. **Draft anchors on both axes** (below). State the entities, files, symbols, env vars the note substantively touches, each at every applicable level.
-5. **Search the drafted anchors.** Anchor search is exact-match URI equality — pass every level (`file:` + class `symbol:` + member `symbol:` + `env:`) in one OR-call, or a same-scope note hides at the level you skipped. Report the status line `память: нашёл N, пригодилось k`. A hit covering the same scope → `update_note`, merge, do not duplicate. Otherwise `create_note` with `status: current`.
+5. **Search the drafted anchors.** Anchored search is exact-match URI equality — pass every level (`file:` + class `symbol:` + member `symbol:` + `env:`) in one OR-call, or a same-scope note hides at the level you skipped. Report the status line `память: нашёл N, пригодилось k`. A hit covering the same scope → `update_note`, merge, do not duplicate. Otherwise `create_note` with `status: current`.
 6. **Resolve any `warning`** in the response (empty axis or anchor defect) — fix and call again. Capture the returned `[[id]]`.
 7. **Link the note.** Write `[[id]]` into the active plan's `## Рабочие заметки` and into related notes where a reader would follow it; append the `summary` where context needs it: `[[a3f9b]] — отказ от Redis в пользу БД`.
 8. **Show the result.** The note is already saved (step 5) — show the user the stored note and its `[[id]]`. No pre-save confirmation: a note is trivially reversible, so the user corrects or drops it afterward if needed.
@@ -111,4 +111,4 @@ Relevance decides *what* to anchor; once decided, anchor at every level. The gat
 - Capturing a note with no reasoning, or a retelling of the diff.
 - Under-anchoring: a target anchored at one level only, a method without its class and file, or a note missing the `entity:` axis.
 - Marking an ordinary decision `critical` with no `## Инварианты` section.
-- Mixing `query` and `anchors` in one `search` call — they are separate axes.
+- Mixing `query` and `anchors` in one `search` call — the paths rank by different measures, the relevance cut breaks, retrieval comes back incomplete.

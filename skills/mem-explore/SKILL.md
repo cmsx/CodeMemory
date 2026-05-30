@@ -58,12 +58,14 @@ Omit any empty section. No contradictions and no flags → say so plainly; the d
 
 ## Search contract
 
-A `search` call takes two independent axes; they do not mix in one call:
+A `search` call has two paths, each with its own yield — separate calls, never two fields of one call.
 
-- **`anchors`** — an arbitrary set of relevant anchors of any kind (`entity:`, `file:`, `symbol:`, `env:` mixed freely). OR by default: the result is the union over the set. Pass every relevant anchor in one call.
-- **`query`** — Russian descriptive words; OR over keywords, BM25 ranks the densest hit first. `strict: true` switches to AND — every term must match.
+- **Anchored search** (`anchors`) is the precise, information-dense path: it returns the notes pinned to the exact nodes in hand. Anchors union by OR — pass every relevant anchor in one call. Use it whenever a coordinate is known.
+- **Full-text search** (`query`) is the orienting path — Russian descriptive words, 1–2 rephrasings, BM25 over summary and body, OR by default (`strict: true` for AND). Reach for it when no coordinate is in hand: boundaries still fuzzy, not all relevant anchors known, or the anchored search came back empty.
 
-Anchor types, closed set: `file:<path>`, `symbol:<path>::<Name>` (member: `<path>::<Class>.<member>`), `entity:<Name>` (registry via `list_entities`), `env:<VAR>`. Anchor search is exact-match URI equality — no hierarchy, no containment; `file:` does not pull in symbols inside it. To cast wide, pass the file, the class symbol, and member symbols all in the one OR-call.
+Mixing the two in one call is an error: the paths rank by different measures, so the relevance cut breaks and retrieval comes back incomplete.
+
+Anchor types, closed set: `file:<path>`, `symbol:<path>::<Name>` (member: `<path>::<Class>.<member>`), `entity:<Name>` (registry via `list_entities`), `env:<VAR>`. Anchored search is exact-match URI equality — no hierarchy, no containment; `file:` does not pull in symbols inside it. To cast wide, pass the file, the class symbol, and member symbols all in the one OR-call.
 
 ## Reading contract
 
