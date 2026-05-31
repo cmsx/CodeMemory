@@ -23,7 +23,8 @@ Communicate with the user in Russian. Write all plan files and notes in Russian.
 5. **Capture** each ADR-worthy item via `/mem`, collecting its `[[id]]`.
 6. **Summarize** the classified items into the index sections, carrying `[[id]]` where one exists.
 7. **Check off** the current stage `[x]`.
-8. Report: which plan and stage closed, what went to the index, the `[[id]]` captured.
+8. **Delete** the plan's `<prefix>-run.md` if present — it was reconnaissance scaffolding for the stage now closed.
+9. Report: which plan and stage closed, what went to the index, the `[[id]]` captured.
 
 ## Classification
 

@@ -14,33 +14,21 @@ Communicate with the user in Russian. Write all plan files and notes in Russian.
 
 ## Behavior
 
-1. Run `/work-prime` if project context is not yet loaded this session.
-2. Resolve the plan: `@<path>` → that index; no argument → the single `plans/*-00-index.md` with `status: active`. None or several active without an argument → refuse, report, ask for `@<path>`. Read the index in full.
-3. Find the current stage — the first one without `[x]` in `## Этапы`. Read its `<prefix>-NN-<slug>.md` step file in full, including `## Рабочие заметки`.
-4. Ground from the plan's `## Grounding` block before writing code: read the `### Спецификации` pointers whose substance the stage needs, and `get_notes` on the `[[id]]` from `### Память` (one batched call). Report the status line.
+1. Resolve the plan: `@<path>` → that index; no argument → the single `plans/*-00-index.md` with `status: active`. None or several active without an argument → refuse, report, ask for `@<path>`. Read the index in full.
+2. Find the current stage — the first one without `[x]` in `## Этапы`. Read its `<prefix>-NN-<slug>.md` step file in full, including `## Рабочие заметки`.
+3. **Reconnaissance — decide the route, load context to match.** State the route in one explicit line. The rules floor — the `specs/` root incl. `RULES.md` (the index is read in step 1) — is always loaded; the routes differ on the domain map.
+   - A current `<prefix>-run.md` exists → use it. This is also re-entry after an interruption — a fresh context returns through the map instead of researching the stage again. Load the rules floor; take the domain map from the run-file's `## Сущности` slice.
+   - No run-file → **delegate** by default (`этап крупный → делегирую разведку`). The map is the norm: it carries the stage's full context and anchors that re-entry — stage size is not the gate. Load only the rules floor yourself — do not pull the full `list_entities`. Spawn a subagent to run the `/prepare` reconnaissance; it self-primes the domain map in its own context, writes the run-file, returns. Take entities from the run-file slice; reach for the full `list_entities` only through the run-file's escape hatch.
+   - No run-file, and the stage is trivial — gathering is a couple of obvious reads, nothing to chart and no re-entry concern → **self** (`этап мал → читаю сам`). Run `/work-prime`, including the domain map, and scout the stage yourself.
+4. **Ground before code.** Run-file present → read it: per-file coordinates, `[[id]]` notes (`get_notes`, one batched call), entities, plus the `## Grounding` `### Спецификации` pointers the stage needs. Self-read stage → ground from the `## Grounding` block (`### Спецификации` pointers and `get_notes` on the `### Память` `[[id]]`) and your quick scout. Report the status line.
 5. Step file has `[x]` sub-tasks — work was interrupted. Continue from the first unchecked sub-task; do not restart done work.
-6. Report briefly: which plan, which stage, any interrupted-work signs, the session plan.
-7. Work the stage. On the first touch this session of a file or symbol the `## Grounding` block did not already cover, ground that area before editing it (Grounding an area, below); report the status line. Check off `[x]` sub-tasks as they complete. Write `## Рабочие заметки` along the way, recording the `[[id]]` of notes that genuinely added understanding — not every note found.
+6. Report briefly: which plan, which stage, the reconnaissance decision, any interrupted-work signs, the session plan.
+7. Work the stage — reason the HOW (signatures, data structures, approach, test strategy) from the map, then write the code and the tests. On the first touch this session of a file or symbol neither the run-file nor the `## Grounding` block covered, ground that area before editing it (Grounding an area, below); report the status line. Check off `[x]` sub-tasks as they complete. Write `## Рабочие заметки` along the way, recording the `[[id]]` of notes that genuinely added understanding — not every note found.
 8. After renaming a symbol or file in the codebase, call `rename_anchor(old_uri, new_uri)` so note links do not go `stale`.
 9. Before pausing or ending a turn, reconcile the step file: every done sub-task `[x]`, every needed working note present.
 10. Stage finished (sub-tasks `[x]`, Definition of done met) — run the full project test suite. ALL tests must pass. Do not advance to `/work-step-done` with any failing or skipped test; fix within the stage, or raise it if the failure is out of scope.
 
 Do not capture to memory mid-stage — capture is owned by `/work-step-done`.
-
-## Under plan mode
-
-Plan mode active at launch = a design pass over the current stage, reviewed before any code. Run through the implementation, map it onto the architectural decisions already settled (the plan's `## Grounding`, the index Решения, the governing spec), and translate them into concrete code-level decisions. The plan files carry WHAT/WHY at stage granularity; this pass produces the HOW.
-
-1. Read the index and the current step file; ground the stage up front (Grounding an area, below).
-2. Map the files the stage touches with `list_symbols_in_file`; read the symbol ranges a decision depends on, not whole files.
-3. For each sub-task, decide and state: which files change, the signatures and data structures, the chosen approach, and the test strategy — which states, transitions, and failure paths to cover (Testing discipline, below).
-4. A genuinely trivial stage — justify that explicitly; do not shorten silently.
-
-Decisions, not code. Write no production code and no test code in this pass — writing it is the executor's job, and front-loading it leaves the executor nothing but a file save. Express a point as the approach in prose; a short fragment is allowed only when it clarifies a decision better than words can — an illustration of the choice, never the implementation to hand off.
-
-This is elaboration of an already-settled stage, not a re-opening of architecture — patterns and scope belong to `/work-grill` and `/work-plan`.
-
-The pass produces the approval artifact, not a file write. On approval, execute it — now the code and tests get written.
 
 ## Grounding an area
 

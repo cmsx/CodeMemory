@@ -1,9 +1,9 @@
 # /work — canon for the work skill family
 
 Canonical rules for `/work-prime`, `/work-grill`, `/storyteller`, `/work-plan`,
-`/work-update`, `/work`, `/work-step-done`, `/work-done`. This file is the
-author's source of truth: each skill inlines the slices it needs at runtime.
-When this canon changes, re-derive every skill in the family from it.
+`/work-update`, `/prepare`, `/work`, `/work-step-done`, `/work-done`. This file
+is the author's source of truth: each skill inlines the slices it needs at
+runtime. When this canon changes, re-derive every skill in the family from it.
 
 Communicate with the user in Russian. Write all plan files, notes, and spec
 edits in Russian. Skill instructions are English — this does not change the
@@ -35,6 +35,7 @@ plan is the data bus across sessions.
 | `/storyteller` | Architect | yes (`specs/`) | Convert a settled need into a System-Aware Story |
 | `/work-plan` | Architect | yes (`plans/`) | Create a new plan |
 | `/work-update` | Architect | yes (`plans/`) | Apply a discussion outcome to a plan |
+| `/prepare` | Reconnaissance | yes (`plans/` run-file) | Scout the current stage; produce the run-file map |
 | `/work` | Code | yes (code, tests) | Execute the current stage |
 | `/work-step-done` | Architect | yes (`plans/`, memory) | Close the current stage |
 | `/work-done` | Architect | yes (`specs/`, memory) | Close the whole plan |
@@ -145,7 +146,8 @@ index), and queries code memory for its invariants and pitfalls. Neither
 source is skipped on a horizontal trigger — the focus on memory does not
 retire the spec.
 On routine turns inside an already-grounded area the block is omitted.
-`/work-grill`, `/work-update`, and `/work` instruct their concrete reads.
+`/work-grill`, `/work-update`, `/work`, and `/prepare` instruct their concrete
+reads.
 
 ### Grounding references in the plan
 
@@ -165,6 +167,62 @@ the grounding done once in discussion is not re-discovered every session:
 `/work-grill` collects both while discussing; `/work-plan` and `/work-update`
 write them in; `/work` reads the block on stage start as the pointer to what to
 load before editing.
+
+## Reconnaissance and the run-file
+
+`/prepare` is the reconnaissance phase that front-loads a stage's context
+discovery so `/work` does not spend its own context re-exploring. It produces a
+map — pointers, not content — and writes it to a run-file; it never designs the
+implementation (the HOW stays in `/work`).
+
+Division of labor:
+
+- `/prepare` — discovery and relevance: which files, symbols, notes, and
+  entities the stage touches, where to look, and why each matters. Relevance
+  verdicts, never implementation prescriptions.
+- `/work` — the HOW (signatures, structures, approach, test strategy) and the
+  code, reasoned from the map.
+
+### Delegation
+
+A stage's reconnaissance is heavy — a wide fan-out of search and full reading.
+`/work` delegates it to a subagent by default: reaching a stage with no current
+run-file, it spawns a subagent to run the `/prepare` reconnaissance, which
+writes the run-file and returns; the heavy load burns in the disposable context
+while `/work`'s stays clean. Only a clearly small stage — one `/work` can cover
+with a quick read itself — skips delegation. Either way `/work` states the
+decision in one explicit line (`этап крупный → делегирую разведку` / `этап мал
+→ читаю сам`) so it does not slip by.
+
+The delegation branch also splits the context load. `/work` loads only the
+rules floor itself — the `specs/` root incl. `RULES.md`, and the plan index —
+and skips the full `list_entities`; the subagent self-primes the domain map in
+its disposable context and returns the relevant entity slice in the run-file.
+The self-read branch runs `/work-prime` in full, the domain map included.
+
+`/prepare` invoked directly by the user runs inline in the main thread (manual
+preparation); the skill itself is orchestration-neutral — spawning is the
+caller's job.
+
+### The run-file
+
+One `<prefix>-run.md` per plan — the current stage's scaffolding. Overwritten on
+each stage, gitignored with the rest of `plans/`, deleted by `/work-step-done`
+when the stage closes. It carries the reconnaissance map (template in
+`docs/consumer-guide/formats.md`): the stage scope, a per-file relevance verdict
+with coordinates, the relevant notes (`[[id]]` + why), the relevant entities,
+what was checked and ruled out, and an escape hatch for deeper research.
+
+Persisting for the whole stage is deliberate. The map is the stage's context
+bundle — sized to the atomic unit of work, not to a file count — and its second
+role is re-entry: if a large stage is interrupted and the context reset, a fresh
+`/work` re-reads the existing run-file and resumes through its pointers instead
+of researching the stage again. Delegation is therefore the norm; only a stage
+trivial enough that one quick read covers it skips reconnaissance.
+
+When a run-file is present, `/work` leans on its entity slice instead of loading
+the full domain map, and follows the escape hatch (`list_entities` + full-text
+search) only if execution needs research the map did not cover.
 
 ### Writing — plan to memory
 
@@ -286,8 +344,8 @@ method". The code is in git; these notes keep the residue git cannot show.
 
 ## Behavioral notes
 
-- Do not duplicate with a todo tool — plan mode plus step-file checkboxes are
-  enough.
+- Do not duplicate with a todo tool — the plan files plus step-file checkboxes
+  are enough.
 - Index — navigation and strategy. Step file — detail and history. Do not
   duplicate content between them.
 - When in doubt — ask the user. Editing the spec or changing plan status is
@@ -304,6 +362,18 @@ The canonical plan templates — index and step file — live in
 `/work-plan`, `/work-update`, and `/storyteller` inline the slice they produce.
 The role-structured note templates belong to the `mem` family; the work side
 references them through `/mem`.
+
+## Reference — plan-mode design pass (dormant)
+
+Not inlined by any active skill. Kept here so a future author can restore it
+without digging through git. Earlier `/work` ran a design pass when launched
+under harness plan mode: map the stage's files, translate the settled
+architectural decisions (the plan's `## Grounding`, the index Решения, the
+governing spec) into concrete code-level decisions (signatures, data structures,
+approach, test strategy) as an approval artifact — decisions, not code —
+reviewed before any code was written. Superseded by `/prepare` (discovery) plus
+`/work`'s intrinsic Code Mode HOW reasoning; the harness blocks writes under
+plan mode on its own.
 
 ## Cross-references
 
