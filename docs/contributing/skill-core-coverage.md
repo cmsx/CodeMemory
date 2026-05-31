@@ -35,9 +35,9 @@
   `Modes` (intro + mode-shift не копируются), и не авторский парафраз —
   именно блок, чтобы наличие проверялось бинарно. Скилл-специфичные
   запреты (у `/mem` — «не пересказ диффа») остаются в теле скилла, не в
-  блоке. Краевые случаи — bespoke-строка, а не блок: `/work-grill`
+  блоке. Краевые случаи — bespoke-строка, а не блок: `/grill`
   копирует **два** блока (Ask + Architect) + слайс mode-shift trigger;
-  `/work-prime` — «no Mode» (он `— (system)`); `/mem-explore` —
+  `/prime` — «no Mode» (он `— (system)`); `/mem-explore` —
   «stop-and-confront brake», не один из трёх режимов.
 - Язык общения (рус.) и язык артефактов (рус.) — обязательны везде, в
   списках ниже не повторяются.
@@ -108,17 +108,17 @@
 
 ## Семейство `work`
 
-### `/work-prime` — load context (— system)
+### `/prime` — load context (— system)
 
 - [ ] Не стартует Mode, не предлагает шаг; только загрузка (work: Commands)
-- [ ] Чтение base specs (корень `specs/`, без подпапок) (skills.md: /work-prime)
-- [ ] Активный план: единственный `*-00-index.md`, `status: active`, только индекс (skills.md: /work-prime)
-- [ ] `list_entities` — доменная карта (skills.md: /work-prime)
+- [ ] Чтение base specs (корень `specs/`, без подпапок) (skills.md: /prime)
+- [ ] Активный план: единственный `*-00-index.md`, `status: active`, только индекс; `draft`/`completed` не грузятся (skills.md: /prime; work: Plan lifecycle)
+- [ ] `list_entities` — доменная карта (skills.md: /prime)
 - [ ] Репорт загруженного + счётчик-артефакт `домен-карта: N` (work: behavioral)
 - [ ] Разрешение неоднозначности плана (>1 active / `@<path>`) — graceful (work: invariant 1)
 - [ ] Do-not: не `search`, не step-файлы/код, не пересказ, не вопросы
 
-### `/work-grill` — discuss (Ask → Architect, judgment)
+### `/grill` — discuss (Ask → Architect, judgment)
 
 - [ ] Modes Ask + Architect, их forbidden-списки (work: Modes)
 - [ ] Mode-shift как триггер grounding-а (work: Mode-shift trigger)
@@ -141,35 +141,24 @@
 - [ ] Шаблон Story заинлайнен (consumer-guide/formats.md / work: Templates)
 - [ ] Пишет файл — на явном сигнале (work: invariant 5)
 
-### `/work-plan` — create plan (Architect, judgment)
+### `/blueprint` — create or amend plan (Architect, judgment)
 
 - [ ] Architect Mode (work: Modes)
-- [ ] Structured CoT (work: Structured CoT)
+- [ ] Диспетчеризация create/amend по `@<path>`; статус нового плана (active при пустом фокусе, иначе draft); offer-activate на amend `draft` без активного (work: Plan lifecycle; blueprint dispatch)
+- [ ] Разрешение плана: `@<path>` → named любого статуса (amend); нет `@<path>` → create (work: invariant 1)
+- [ ] Structured CoT — единая траектория с развилкой create/amend (work: Structured CoT)
 - [ ] Synthesis Form (work: Synthesis Form)
-- [ ] Reading triggers + `*` search-слайс + status line; двухисточниковый grounding (спека области + память) (work/mem)
-- [ ] Retrospective чек / Architecture Block в чат до записи (work: Design discipline)
+- [ ] Use cases amend: скоуп ±, «хвосты», ре-декомпозиция (skills.md: /blueprint)
+- [ ] Reading triggers + `*` search-слайс + status line, особо для нового «хвоста»; двухисточниковый grounding (спека области + память) (work/mem)
+- [ ] Retrospective чек / Architecture Block в чат до записи; на amend — обоснование правки + запись в `## Отклонения` (work: Design discipline)
 - [ ] Design discipline — антипаттерны, framework-механизмы (work: Design discipline)
 - [ ] Таксономия индекса: Решения/Отклонения/Edge cases/Открытые вопросы (work: Index taxonomy)
-- [ ] `## Grounding`: `### Спецификации` (пути + однострочник, не пересказ) + `### Память` (`[[id]]` + якоря полного набора) (work: Grounding references)
+- [ ] `## Grounding`: `### Спецификации` (пути + однострочник, не пересказ) + `### Память` (`[[id]]` + якоря полного набора); на amend — обновление обоих источников (work: Grounding references)
+- [ ] Writing rules amend: не ломать закрытые `[x]`; new step = next free `NN`; re-decomp только открытых шагов (skills.md: /blueprint)
 - [ ] Stage granularity — один шаг = один осмысленный коммит (work: Stage granularity)
 - [ ] Key invariants: flat `plans/`, имена `<prefix>-NN-<slug>`, gitignored, чекбоксы (work: Key invariants)
 - [ ] Шаблоны index + step заинлайнены (work: Templates)
-- [ ] Question style (work: Question style)
-
-### `/work-update` — modify plan (Architect, judgment)
-
-- [ ] Architect Mode (work: Modes)
-- [ ] Structured CoT (work: Structured CoT)
-- [ ] Synthesis Form (work: Synthesis Form)
-- [ ] Use cases: скоуп ±, «хвосты», ре-декомпозиция (skills.md: /work-update)
-- [ ] Reading triggers + `*` search-слайс + status line, особо для нового «хвоста»; двухисточниковый grounding (спека области + память) (skills.md: /work-update)
-- [ ] Architecture Block — обоснование правки плана (skills.md: /work-update)
-- [ ] Таксономия индекса (work: Index taxonomy)
-- [ ] Обновление `## Grounding` — оба источника (work: Grounding references)
-- [ ] Не ломать закрытые `[x]` шаги (skills.md: /work-update)
-- [ ] Разрешение активного плана (`@<path>` / единственный active) (work: invariant 1)
-- [ ] Шаблоны index/step при создании новых шагов (work: Templates)
-- [ ] Question style (work: Question style)
+- [ ] Question style; confirm prefill «да» для offer-activate (work: Question style)
 
 ### `/prepare` — reconnaissance (bespoke Reconnaissance Mode, judgment)
 
@@ -194,7 +183,7 @@
 - [ ] Чтение `00-index.md` + текущего `NN-step.md` (skills.md: /work)
 - [ ] Текущий шаг = первый без `[x]` (work: Key invariants)
 - [ ] Reconnaissance decision: делегация по умолчанию / self-read на малом + явная строка (work: Delegation)
-- [ ] Сплит загрузки: делегация — только rules floor (specs root + RULES), домен-карту даёт субагент; self-read — полный `/work-prime` (work: Delegation)
+- [ ] Сплит загрузки: делегация — только rules floor (specs root + RULES), домен-карту даёт субагент; self-read — полный `/prime` (work: Delegation)
 - [ ] Потребление run-файла: координаты + `[[id]]` + срез `## Сущности`; escape hatch для полного реестра (work: Reconnaissance)
 - [ ] HOW выводится из карты интринсиком Code Mode, без отдельной design-pass-секции (work: Reconnaissance)
 - [ ] `## Grounding`: читает `### Спецификации`-указатели + `get_notes` по `[[id]]` из `### Память` — подгрузить контекст до кода (work: Grounding references)
@@ -209,23 +198,35 @@
 - [ ] Working notes discipline — борьба и решения, не пересказ диффа (work: Working notes)
 - [ ] `rename_anchor` при переименовании символа/файла (mem: rename_anchor contract)
 
-### `/work-step-done` — close stage (Architect)
+### `/checkpoint` — save partial progress (— system, procedural)
 
-- [ ] Architect Mode рефлексии (skills.md: /work-step-done)
-- [ ] Чтение `## Рабочие заметки` из файла шага (skills.md: /work-step-done)
+- [ ] Не стартует Mode; защиту несёт явный forbidden-set («no Mode» как `/prime`) (work: Commands — краевой случай)
+- [ ] Forbidden-set контрастный к `step-done`: не `/mem`, не удалять run-файл, не `[x]` этапа, не `specs/`; capture mid-stage запрещён (work: Writing — plan to memory; The run-file)
+- [ ] Разрешение плана: `@<path>` / единственный `active` / refuse при неоднозначности (work: invariant 1)
+- [ ] Текущий шаг = первый без `[x]`; чтение step-файла целиком (work: Key invariants)
+- [ ] Оценка готовности (подзадачи / DoD / остаток) — инверсия finished-check `step-done` (skills.md: /checkpoint)
+- [ ] Простановка `[x]` готовым подзадачам, незавершённые не трогает (skills.md: /step-done — checking off, адаптировано)
+- [ ] Находки + маркер «где встал / следующий шаг» в `## Рабочие заметки` (work: Working notes)
+- [ ] Working notes discipline — борьба и решения, не пересказ диффа (work: Working notes)
+- [ ] Re-entry на штатной механике `/work` (первая неотмеченная подзадача + рабочие заметки), без resume-секции (work: The run-file; /work re-entry)
+
+### `/step-done` — close stage (Architect)
+
+- [ ] Architect Mode рефлексии (skills.md: /step-done)
+- [ ] Чтение `## Рабочие заметки` из файла шага (skills.md: /step-done)
 - [ ] Суммаризация в секции индекса (Решения/Отклонения/Edge/Открытые) (work: Index taxonomy)
 - [ ] Вызов `/mem` для новых знаний; strip plan-process метаданных (work: Writing — plan to memory)
 - [ ] Водораздел: что идёт в память (work: watershed)
-- [ ] Простановка `[x]` в индексе (skills.md: /work-step-done)
+- [ ] Простановка `[x]` в индексе (skills.md: /step-done)
 - [ ] Удаление `<prefix>-run.md` на закрытии этапа (work: The run-file)
 - [ ] Никакого capture mid-stage (work: Writing — plan to memory)
 
-### `/work-done` — finalize (Architect)
+### `/finalize` — finalize (Architect)
 
 - [ ] Architect Mode (work: Modes)
-- [ ] Проверка, что все шаги `[x]` (skills.md: /work-done)
+- [ ] Проверка, что все шаги `[x]` (skills.md: /finalize)
 - [ ] Разнос по водоразделу specs vs memory (work: Writing — plan to memory)
 - [ ] Обновление `specs/` только при изменении бизнес-логики/модели/паттерна (work: Writing)
-- [ ] Вызов `/mem` для глобальных архитектурных решений плана (skills.md: /work-done)
-- [ ] Смена статуса плана на `completed` (skills.md: /work-done)
+- [ ] Вызов `/mem` для глобальных архитектурных решений плана (skills.md: /finalize)
+- [ ] Смена статуса плана на `completed` (skills.md: /finalize)
 - [ ] Не удалять файлы плана автоматом (work: Behavioral notes)

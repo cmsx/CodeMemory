@@ -1,16 +1,16 @@
 ---
-name: work-step-done
-description: Close the just-finished stage of the active /work plan — summarize its working notes into the index sections, capture durable code knowledge to Code Memory via /mem, and check the stage [x]. Use only when explicitly invoked as /work-step-done.
+name: step-done
+description: Close the just-finished stage of the active /work plan — summarize its working notes into the index sections, capture durable code knowledge to Code Memory via /mem, and check the stage [x]. Use only when explicitly invoked as /step-done.
 ---
 
-# /work-step-done — close a stage
+# /step-done — close a stage
 
 Architect Mode (reflection). The stage is built and green; this reflects on its residue and routes it: a one-line summary into the plan index, durable code knowledge into Code Memory, then the stage checked `[x]`.
 
 ### Architect Mode — design
 Discuss patterns, invariants, data structures; decompose the work. Write plan, spec, or note files when the skill calls for it. Forbidden: generating production code.
 
-This skill writes the plan index and memory notes only — no production code, no spec changes (specs wait for `/work-done`).
+This skill writes the plan index and memory notes only — no production code, no spec changes (specs wait for `/finalize`).
 
 Communicate with the user in Russian. Write all plan files and notes in Russian. Skill instructions are English — this does not change the output language.
 

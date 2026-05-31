@@ -9,7 +9,7 @@ Code Memory Service — MCP-сервис, который хранит знани
 - `src/` — исходники сервиса: core-библиотека, MCP-сервер, CLI/TUI.
 - `specs/` — спека сервиса: домен, данные, поиск, интерфейсы, тех-дизайн.
 - `skills/` — корпус скиллов для Claude Code, поставляемый вместе с сервисом
-  (`mem`, `mem-onboarding`, семейство `/work-*`, `/storyteller`, `/mem-explore`).
+  (`mem`, `mem-onboarding`, семейство `workflow`, `/storyteller`, `/mem-explore`).
 - `docs/` — документация: workflow скиллов, методология консьюмера, setup,
   гайды для контрибьюторов.
 
@@ -17,21 +17,21 @@ Code Memory Service — MCP-сервис, который хранит знани
 они, будучи установленными в `.claude/skills/` целевого проекта.
 
 Сам сервис к этому репозиторию **не подключён**: MCP-инструменты (`search`,
-`get_notes`, …) недоступны, поэтому шаги «поиск по памяти» из `/work-*` здесь —
+`get_notes`, …) недоступны, поэтому шаги «поиск по памяти» из workflow-скиллов здесь —
 no-op. Источник истины — `specs/`, `docs/` и файлы плана.
 
 ## Как здесь работать
 
 1. Канон: `specs/` (сервис), `docs/workflow/` и `docs/consumer-guide/`
    (экосистема скиллов и методология).
-2. Задачи разработки ведём через семейство `/work-*` пошагово. Процедура — в
+2. Задачи разработки ведём через семейство `workflow` пошагово. Процедура — в
    `skills/work/` (`SKILL.md` + `core.md`); поскольку скиллы здесь не активны,
    читаем и исполняем их по тексту.
 3. Планы лежат в `plans/` плоско, `<prefix>-NN-<slug>.md`, прогресс —
    чек-боксы (первый этап без `[x]` — текущий). Файлы плана — личное
    пространство разработчика, не коммитятся.
 
-Цикл: `(/prepare) → /work` → реализация этапа → `/work-step-done` (фиксация
+Цикл: `(/prepare) → /work` → реализация этапа → `/step-done` (фиксация
 рабочих заметок в индекс) → `/git commit` → следующий этап. `/prepare` —
 разведка контекста этапа (по умолчанию `/work` делегирует её субагенту).
 
@@ -50,13 +50,12 @@ no-op. Источник истины — `specs/`, `docs/` и файлы пла�
 | Где | Что |
 |-----|-----|
 | `specs/` | Спека сервиса (отправная точка — `specs/00-overview.md`) |
-| `docs/workflow/README.md` | Жизненный цикл задачи `/work-*`, обзор экосистемы скиллов |
+| `docs/workflow/README.md` | Жизненный цикл задачи (семейство `workflow`), обзор экосистемы скиллов |
 | `docs/workflow/skills.md` | Справочник по скиллам: режим, задача, механика |
 | `docs/workflow/context-engineering.md` | Context Drift, Structured CoT, Grounding, Synthesis, Modes, водораздел, `/mem-explore` |
 | `docs/consumer-guide/documentation-system.md` | 6-слойная спека целевого проекта, `RULES.md`, Functional Map |
 | `docs/consumer-guide/user-stories.md` | System-Aware User Stories: концепт + формат |
 | `docs/consumer-guide/formats.md` | Шаблоны плана; указатели на канон заметок (`specs/04`) и историй |
-| `docs/setup/migration-guide.md` | Миграция консьюмера на текущие контракты сервиса |
 | `docs/contributing/skill-writing.md` | Стиль-гайд написания скиллов — обязателен при правке `skills/` |
 | `docs/contributing/skill-core-coverage.md` | Чек-лист обязательных слайсов `core.md` по каждому скиллу |
 | `docs/contributing/manual-testing.md` | Ручной чек-лист для TUI, Docker-развёртывания, онбординга |

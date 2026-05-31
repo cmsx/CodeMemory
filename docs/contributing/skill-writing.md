@@ -32,14 +32,14 @@ skill spans both phases (rare).
 
 ### Procedural
 
-For rutinous skills with a defined end (`/work-prime`, `/work`,
-`/work-step-done`, `/work-done`). Form: `case → action` imperative steps. The
+For rutinous skills with a defined end (`/prime`, `/work`,
+`/step-done`, `/finalize`). Form: `case → action` imperative steps. The
 model executes the list.
 
 ### Judgment (Structured CoT)
 
-For skills that require reasoning under context-drift pressure (`/work-grill`,
-`/work-plan`, `/work-update`, `/mem` capture, `/storyteller`). Form: an
+For skills that require reasoning under context-drift pressure (`/grill`,
+`/blueprint`, `/mem` capture, `/storyteller`). Form: an
 explicit cognitive trajectory the model walks through before producing
 output. Each step of the trajectory is a concrete action or formulation, not
 an exhortation to "think carefully".

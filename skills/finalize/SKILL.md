@@ -1,9 +1,9 @@
 ---
-name: work-done
-description: Finalize a completed /work plan — split the plan's accumulated decisions across the specs-vs-memory watershed, update specs and capture plan-global ADRs via /mem, then mark the plan completed. Use only when explicitly invoked as /work-done.
+name: finalize
+description: Finalize a completed /work plan — split the plan's accumulated decisions across the specs-vs-memory watershed, update specs and capture plan-global ADRs via /mem, then mark the plan completed. Use only when explicitly invoked as /finalize.
 ---
 
-# /work-done — finalize a plan
+# /finalize — finalize a plan
 
 Architect Mode (consolidation). Every stage is built and checked; this reflects across the whole plan and routes its decisions: behavior-and-usage facts into `specs/`, plan-global "how/why" into Code Memory, then the plan is marked `completed`.
 
@@ -31,7 +31,7 @@ Walk the index's Решения and Отклонения once. For each decision
 
 A decision can fork to both sides — the behavior into a spec, the reasoning into a note. Strip plan-process metadata from anything bound for specs or memory — no "stage 2", no plan structure; that history stays in the index.
 
-Most stage-level "how/why" was already captured by `/work-step-done`, and those index lines carry their `[[id]]` — do not re-capture them. At finalize the memory work is **plan-global**: consolidate or cross-link the stage notes where the whole now reads as one decision, and add feature-level notes that only make sense across the completed plan.
+Most stage-level "how/why" was already captured by `/step-done`, and those index lines carry their `[[id]]` — do not re-capture them. At finalize the memory work is **plan-global**: consolidate or cross-link the stage notes where the whole now reads as one decision, and add feature-level notes that only make sense across the completed plan.
 
 ### specs vs memory — the watershed
 

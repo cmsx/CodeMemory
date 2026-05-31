@@ -1,7 +1,7 @@
-# /work — canon for the work skill family
+# /work — canon for the workflow skill family
 
-Canonical rules for `/work-prime`, `/work-grill`, `/storyteller`, `/work-plan`,
-`/work-update`, `/prepare`, `/work`, `/work-step-done`, `/work-done`. This file
+Canonical rules for `/prime`, `/grill`, `/storyteller`, `/blueprint`,
+`/prepare`, `/work`, `/checkpoint`, `/step-done`, `/finalize`. This file
 is the author's source of truth: each skill inlines the slices it needs at
 runtime. When this canon changes, re-derive every skill in the family from it.
 
@@ -15,7 +15,7 @@ A workflow for planning and step-by-step execution of non-trivial tasks. State
 lives in plan files under `plans/`, which persist across sessions, accumulate a
 log of decisions and deviations, and track progress.
 
-`/work-*` commands activate **only** on explicit invocation. Talk of planning,
+The `workflow` family's commands activate **only** on explicit invocation. Talk of planning,
 steps, or todos without a command is not a trigger — keep working normally.
 
 ### The Linux Way
@@ -26,19 +26,36 @@ ahead (start coding mid-discussion) because the active skill holds no such
 instructions. State passes between atomic skills through the plan files — the
 plan is the data bus across sessions.
 
+## Plan lifecycle and status
+
+A plan's `status` frontmatter takes one of three values:
+
+- `draft` — backlog: a planned but unfocused plan. Never the resolution target,
+  never loaded by `/prime`.
+- `active` — the single focus. At most one plan is `active`; it is what every
+  command resolves to when given no `@<path>`.
+- `completed` — closed by `/finalize`, kept as the plan's record.
+
+Many plans coexist; exactly one holds the focus. Switching focus is **manual** —
+edit `status:` in the index frontmatter (demote the old focus to `draft`,
+promote the next to `active`). There is no promote or park command. Status is
+consulted at only two points: when `/blueprint` creates a plan (is a focus
+already `active`?) and at `/finalize` (`active` → `completed`); every other
+command relies on the single `active` resolving for it.
+
 ## Commands
 
 | Command | Mode | Writes files | Job |
 |---------|------|--------------|-----|
-| `/work-prime` | — (system) | no | Load project context |
-| `/work-grill` | Ask → Architect | no | Discuss and settle the approach |
+| `/prime` | — (system) | no | Load project context |
+| `/grill` | Ask → Architect | no | Discuss and settle the approach |
 | `/storyteller` | Architect | yes (`specs/`) | Convert a settled need into a System-Aware Story |
-| `/work-plan` | Architect | yes (`plans/`) | Create a new plan |
-| `/work-update` | Architect | yes (`plans/`) | Apply a discussion outcome to a plan |
+| `/blueprint` | Architect | yes (`plans/`) | Create a new plan, or amend one (dispatch on `@<path>`) |
 | `/prepare` | Reconnaissance | yes (`plans/` run-file) | Scout the current stage; produce the run-file map |
 | `/work` | Code | yes (code, tests) | Execute the current stage |
-| `/work-step-done` | Architect | yes (`plans/`, memory) | Close the current stage |
-| `/work-done` | Architect | yes (`specs/`, memory) | Close the whole plan |
+| `/checkpoint` | — (system) | yes (step file) | Save partial stage progress for restart |
+| `/step-done` | Architect | yes (`plans/`, memory) | Close the current stage |
+| `/finalize` | Architect | yes (`specs/`, memory) | Close the whole plan |
 
 ## Modes
 
@@ -75,7 +92,7 @@ vertical trigger below.
 
 ## Structured CoT
 
-Judgment skills (`/work-grill`, `/work-plan`, `/work-update`) do not run a
+Judgment skills (`/grill`, `/blueprint`) do not run a
 `case → action` checklist. They walk an explicit cognitive trajectory before
 producing output:
 
@@ -111,7 +128,7 @@ the work-side division of labor: **when** each command touches memory.
 ### specs vs memory — the watershed
 
 - `specs/` — the system is intricate and runs on deliberate, vetted decisions,
-  not on defaults, recorded across a layered `specs/` tree. `/work-prime` loads
+  not on defaults, recorded across a layered `specs/` tree. `/prime` loads
   only the root (incl. `RULES.md`) and the plan index. The specs root index
   maps the layers; on entering an area, use it to work out which layers the
   change will touch and read how each prescribes the work — only the files
@@ -141,12 +158,12 @@ audit (over-reporting is an antipattern). Two axes:
 
 On the trigger the model pauses and grounds before proposing — from **both**
 sources per the watershed: it reads the governing spec for the area when that
-spec is deeper than what `/work-prime` loaded (the root specs and the plan
+spec is deeper than what `/prime` loaded (the root specs and the plan
 index), and queries code memory for its invariants and pitfalls. Neither
 source is skipped on a horizontal trigger — the focus on memory does not
 retire the spec.
 On routine turns inside an already-grounded area the block is omitted.
-`/work-grill`, `/work-update`, `/work`, and `/prepare` instruct their concrete
+`/grill`, `/blueprint`, `/work`, and `/prepare` instruct their concrete
 reads.
 
 ### Grounding references in the plan
@@ -164,9 +181,8 @@ the grounding done once in discussion is not re-discovered every session:
   `[[id]]` via `get_notes` lazily — only when the substance is needed, several
   pointers per call.
 
-`/work-grill` collects both while discussing; `/work-plan` and `/work-update`
-write them in; `/work` reads the block on stage start as the pointer to what to
-load before editing.
+`/grill` collects both while discussing; `/blueprint` writes them in; `/work`
+reads the block on stage start as the pointer to what to load before editing.
 
 ## Reconnaissance and the run-file
 
@@ -187,9 +203,10 @@ Division of labor:
 
 A stage's reconnaissance is heavy — a wide fan-out of search and full reading.
 `/work` delegates it to a subagent by default: reaching a stage with no current
-run-file, it spawns a subagent to run the `/prepare` reconnaissance, which
-writes the run-file and returns; the heavy load burns in the disposable context
-while `/work`'s stays clean. Only a clearly small stage — one `/work` can cover
+run-file, it spawns a general-purpose subagent on the Sonnet model and tasks it
+with invoking `/prepare` (passing the plan index path); the subagent runs the
+skill — `prepare` is not an agent type — writes the run-file, and returns. The
+heavy load burns in the disposable context while `/work`'s stays clean. Only a clearly small stage — one `/work` can cover
 with a quick read itself — skips delegation. Either way `/work` states the
 decision in one explicit line (`этап крупный → делегирую разведку` / `этап мал
 → читаю сам`) so it does not slip by.
@@ -198,7 +215,7 @@ The delegation branch also splits the context load. `/work` loads only the
 rules floor itself — the `specs/` root incl. `RULES.md`, and the plan index —
 and skips the full `list_entities`; the subagent self-primes the domain map in
 its disposable context and returns the relevant entity slice in the run-file.
-The self-read branch runs `/work-prime` in full, the domain map included.
+The self-read branch runs `/prime` in full, the domain map included.
 
 `/prepare` invoked directly by the user runs inline in the main thread (manual
 preparation); the skill itself is orchestration-neutral — spawning is the
@@ -207,7 +224,7 @@ caller's job.
 ### The run-file
 
 One `<prefix>-run.md` per plan — the current stage's scaffolding. Overwritten on
-each stage, gitignored with the rest of `plans/`, deleted by `/work-step-done`
+each stage, gitignored with the rest of `plans/`, deleted by `/step-done`
 when the stage closes. It carries the reconnaissance map (template in
 `docs/consumer-guide/formats.md`): the stage scope, a per-file relevance verdict
 with coordinates, the relevant notes (`[[id]]` + why), the relevant entities,
@@ -228,10 +245,10 @@ search) only if execution needs research the map did not cover.
 
 Capture is owned by the `mem` family; the work side only routes into it.
 
-- `/work-step-done` — capture new code knowledge via `/mem`. Strip
+- `/step-done` — capture new code knowledge via `/mem`. Strip
   plan-process metadata (no "stage 2", no plan structure) — that metadata stays
   in the index, which may hold a `[[id]]` pointer.
-- `/work-done` — the main memory work. A decision forks at the watershed:
+- `/finalize` — the main memory work. A decision forks at the watershed:
   *what the system does / how to use it* → `specs/`; *how we got here, what was
   tried and rejected* → a memory note. Touch `specs/` only when business logic,
   the data model, or a pattern changed.
@@ -240,17 +257,19 @@ Never capture mid-stage, and never put plan-process metadata into memory.
 
 ## Key invariants
 
-1. One active plan at a time. Resolving the plan for a command that takes an
-   optional `@<path>`: `@<path>` → that index; no argument → the single
-   `plans/*-00-index.md` with `status: active`; none or several active without
-   an argument → refuse, report, ask for `@<path>`.
+1. At most one **active** plan — the single focus. Other plans coexist as
+   `draft` (backlog) or `completed`; a `draft` is never a resolution target.
+   Resolving the plan for a command that takes an optional `@<path>`: `@<path>`
+   → that index; no argument → the single `plans/*-00-index.md` with
+   `status: active`; none or several active without an argument → refuse,
+   report, ask for `@<path>`.
 2. Flat `plans/`, no subfolders. File names `<prefix>-NN-<slug>.md`: `<prefix>`
    3–4 letters, `NN` two digits with leading zero (`00` = index).
 3. `plans/` is gitignored. Source of truth is `specs/`, which is committed.
 4. Progress = checkboxes in the index. The first stage without `[x]` is
    current. Sub-task checkboxes in step files allow resuming.
-5. Files are written only on an explicit signal. `/work-grill` never writes —
-   only `/work-plan`, `/work-update`, `/storyteller`, and the closing commands do.
+5. Files are written only on an explicit signal. `/grill` never writes —
+   only `/blueprint`, `/storyteller`, and the closing commands do.
 6. Spec lives in `specs/`. Fixed path.
 
 ## Stage granularity
@@ -271,20 +290,20 @@ The index keeps four separate sections — do not merge them:
 - **Открытые вопросы** — what needs user clarification.
 
 During a stage, detail goes in `## Рабочие заметки` of the step file.
-`/work-step-done` summarizes them into the index sections.
+`/step-done` summarizes them into the index sections.
 
 ## Design discipline
 
-The architectural framing applies to all planning commands (`/work-grill`,
-`/work-plan`, `/work-update`); a retrospective check belongs to `/work-plan`
-and `/work-update`. Neither applies on execution.
+The architectural framing applies to all planning commands (`/grill`,
+`/blueprint`); a retrospective check belongs to `/blueprint`. Neither applies
+on execution.
 
 **On entry to planning.** Read the convention docs in `specs/code/` and treat
 them as binding; deviations require explicit justification. No such doc — rely on
 framework idioms and state which were assumed. Take existing
 Решения/Отклонения from the active index as settled constraints.
 
-**Before writing a plan.** `/work-plan` and `/work-update` present an
+**Before writing a plan.** `/blueprint` presents an
 architecture block in chat: applicable framework idioms, antipatterns avoided,
 effect on stage structure. When a pattern is chosen, name it in the plan. A
 short honest block is valid — do not invent abstractions for the check.
@@ -323,7 +342,7 @@ explicit solution is clearer.
 - End-to-end testing is its own plan tied to user stories, not part of a
   feature plan.
 - A stage ends only when the full project test suite passes — no failing or
-  skipped test carries into `/work-step-done`.
+  skipped test carries into `/step-done`.
 
 ## Working notes discipline
 
@@ -359,7 +378,7 @@ The canonical plan templates — index and step file — live in
 `docs/consumer-guide/formats.md`; the System-Aware Story template in
 `docs/consumer-guide/user-stories.md`; the role-structured note bodies in
 `specs/04-note-authoring.md`.
-`/work-plan`, `/work-update`, and `/storyteller` inline the slice they produce.
+`/blueprint` and `/storyteller` inline the slice they produce.
 The role-structured note templates belong to the `mem` family; the work side
 references them through `/mem`.
 

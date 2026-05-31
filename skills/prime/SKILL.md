@@ -1,9 +1,9 @@
 ---
-name: work-prime
-description: Loads session context — the project's base specs, the active /work plan index if one exists, and the domain map via list_entities. Use when explicitly invoked as /work-prime, when another /work command runs its context-loading step, or at the start of a session before working on project code.
+name: prime
+description: Loads session context — the project's base specs, the active /work plan index if one exists, and the domain map via list_entities. Use when explicitly invoked as /prime, when another /work command runs its context-loading step, or at the start of a session before working on project code.
 ---
 
-# /work-prime — load project context
+# /prime — load project context
 
 Starts no Mode, proposes no next step. A document load only.
 
@@ -12,7 +12,7 @@ Communicate with the user in Russian. Skill instructions are English — this do
 ## Behavior
 
 1. Read the base specs — files at the root of `specs/`, no subfolders.
-2. Active plan — the single `plans/*-00-index.md` with `status: active`. Read its index only, not the step files. More than one `status: active` — list them and load none; the user resolves the active plan when a `/work-*` command runs (priming stays non-blocking).
+2. Active plan — the single `plans/*-00-index.md` with `status: active`. Read its index only, not the step files. `draft` (backlog) and `completed` plans are not loaded. More than one `status: active` — list them and load none; the user resolves the active plan when a `workflow` command runs (priming stays non-blocking).
 3. Call `list_entities` to load the domain map.
 4. Report what loaded: a short file list, the active plan name, and the domain map as a count — `домен-карта: N сущностей`. The count proves `list_entities` ran.
 

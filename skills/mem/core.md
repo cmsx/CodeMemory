@@ -321,8 +321,8 @@ in-progress onboarding chunks or notes pending review.
 
 ## Cross-references
 
-The `work` skill family owns the planning and execution workflow. Its
-`core.md` carries the work-side division of labor: when each `/work-*`
-command must search memory, and how its capture in `/work-step-done` and
-`/work-done` calls into the `mem` family. Search and anchor discipline live
+The `workflow` skill family owns the planning and execution workflow. Its
+`core.md` carries the work-side division of labor: when each workflow
+command must search memory, and how its capture in `/step-done` and
+`/finalize` calls into the `mem` family. Search and anchor discipline live
 here.

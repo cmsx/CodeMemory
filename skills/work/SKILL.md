@@ -18,23 +18,23 @@ Communicate with the user in Russian. Write all plan files and notes in Russian.
 2. Find the current stage — the first one without `[x]` in `## Этапы`. Read its `<prefix>-NN-<slug>.md` step file in full, including `## Рабочие заметки`.
 3. **Reconnaissance — decide the route, load context to match.** State the route in one explicit line. The rules floor — the `specs/` root incl. `RULES.md` (the index is read in step 1) — is always loaded; the routes differ on the domain map.
    - A current `<prefix>-run.md` exists → use it. This is also re-entry after an interruption — a fresh context returns through the map instead of researching the stage again. Load the rules floor; take the domain map from the run-file's `## Сущности` slice.
-   - No run-file → **delegate** by default (`этап крупный → делегирую разведку`). The map is the norm: it carries the stage's full context and anchors that re-entry — stage size is not the gate. Load only the rules floor yourself — do not pull the full `list_entities`. Spawn a subagent to run the `/prepare` reconnaissance; it self-primes the domain map in its own context, writes the run-file, returns. Take entities from the run-file slice; reach for the full `list_entities` only through the run-file's escape hatch.
-   - No run-file, and the stage is trivial — gathering is a couple of obvious reads, nothing to chart and no re-entry concern → **self** (`этап мал → читаю сам`). Run `/work-prime`, including the domain map, and scout the stage yourself.
+   - No run-file → **delegate** by default (`этап крупный → делегирую разведку`). The map is the norm: it carries the stage's full context and anchors that re-entry — stage size is not the gate. Load only the rules floor yourself — do not pull the full `list_entities`. Spawn a general-purpose subagent on the Sonnet model and task it with invoking `/prepare @<index-path>` — the subagent runs the skill, `prepare` is not an agent type. It self-primes the domain map in its own context, writes the run-file, returns. Take entities from the run-file slice; reach for the full `list_entities` only through the run-file's escape hatch.
+   - No run-file, and the stage is trivial — gathering is a couple of obvious reads, nothing to chart and no re-entry concern → **self** (`этап мал → читаю сам`). Run `/prime`, including the domain map, and scout the stage yourself.
 4. **Ground before code.** Run-file present → read it: per-file coordinates, `[[id]]` notes (`get_notes`, one batched call), entities, plus the `## Grounding` `### Спецификации` pointers the stage needs. Self-read stage → ground from the `## Grounding` block (`### Спецификации` pointers and `get_notes` on the `### Память` `[[id]]`) and your quick scout. Report the status line.
 5. Step file has `[x]` sub-tasks — work was interrupted. Continue from the first unchecked sub-task; do not restart done work.
 6. Report briefly: which plan, which stage, the reconnaissance decision, any interrupted-work signs, the session plan.
 7. Work the stage — reason the HOW (signatures, data structures, approach, test strategy) from the map, then write the code and the tests. On the first touch this session of a file or symbol neither the run-file nor the `## Grounding` block covered, ground that area before editing it (Grounding an area, below); report the status line. Check off `[x]` sub-tasks as they complete. Write `## Рабочие заметки` along the way, recording the `[[id]]` of notes that genuinely added understanding — not every note found.
 8. After renaming a symbol or file in the codebase, call `rename_anchor(old_uri, new_uri)` so note links do not go `stale`.
 9. Before pausing or ending a turn, reconcile the step file: every done sub-task `[x]`, every needed working note present.
-10. Stage finished (sub-tasks `[x]`, Definition of done met) — run the full project test suite. ALL tests must pass. Do not advance to `/work-step-done` with any failing or skipped test; fix within the stage, or raise it if the failure is out of scope.
+10. Stage finished (sub-tasks `[x]`, Definition of done met) — run the full project test suite. ALL tests must pass. Do not advance to `/step-done` with any failing or skipped test; fix within the stage, or raise it if the failure is out of scope.
 
-Do not capture to memory mid-stage — capture is owned by `/work-step-done`.
+Do not capture to memory mid-stage — capture is owned by `/step-done`.
 
 ## Grounding an area
 
 To **ground** an area touched during the stage is to consult both sources before editing it, not memory alone.
 
-- **Spec** — the system is intricate and runs on deliberate, vetted decisions, not on defaults. When the governing spec for the area is deeper than what `/work-prime` loaded (the `specs/` root and the plan index), read the relevant files — only those the task needs, never a whole layer or the whole tree.
+- **Spec** — the system is intricate and runs on deliberate, vetted decisions, not on defaults. When the governing spec for the area is deeper than what `/prime` loaded (the `specs/` root and the plan index), read the relevant files — only those the task needs, never a whole layer or the whole tree.
 - **Code Memory** (why it is so, where not to step) — **anchored search** on the area's entities, files, and symbols; those are the coordinates in hand. Report the status line.
 
 A touched layer or note left unread surfaces later as a blind spot — the change breaks an invariant or a cross-module flow it never saw.
@@ -80,7 +80,7 @@ Each search tied to a discrete unit of work reports a one-line status in chat: `
 - **Red-Green.** A bug fix starts with a failing test that catches the wrong behavior, then the fix. Never fix first.
 - Cover failure paths, not only the happy path — network errors, missing artifacts, invalid input, permission denials.
 - End-to-end testing is its own plan tied to user stories, not part of a feature plan.
-- A stage ends only when the full project test suite passes — no failing or skipped test carries into `/work-step-done`.
+- A stage ends only when the full project test suite passes — no failing or skipped test carries into `/step-done`.
 
 ## Working notes discipline
 

@@ -10,7 +10,7 @@ Architect Mode. The discussion is over; this is a mechanical translation of the 
 ### Architect Mode — design
 Discuss patterns, invariants, data structures; decompose the work. Write plan, spec, or note files when the skill calls for it. Forbidden: generating production code.
 
-Do not search memory and do not ask questions — the context is already loaded by `/work-prime` or settled in `/work-grill`. Draw every field from the dialogue. A field genuinely absent from the discussion → leave a `<...>` placeholder and name it in the report; never invent it.
+Do not search memory and do not ask questions — the context is already loaded by `/prime` or settled in `/grill`. Draw every field from the dialogue. A field genuinely absent from the discussion → leave a `<...>` placeholder and name it in the report; never invent it.
 
 Communicate with the user in Russian. Skill instructions are English — this does not change the output language.
 

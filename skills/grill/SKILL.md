@@ -1,9 +1,9 @@
 ---
-name: work-grill
-description: Discuss and settle the technical approach before any plan is written — interrogate the requirement in Ask Mode, shift to Architect Mode on the move from "what" to "how", and ground every proposal in the project's specs and Code Memory. Use only when explicitly invoked as /work-grill.
+name: grill
+description: Discuss and settle the technical approach before any plan is written — interrogate the requirement in Ask Mode, shift to Architect Mode on the move from "what" to "how", and ground every proposal in the project's specs and Code Memory. Use only when explicitly invoked as /grill.
 ---
 
-# /work-grill — discuss and settle the approach
+# /grill — discuss and settle the approach
 
 Two Modes in sequence. Open in **Ask Mode**; cross to **Architect Mode** the moment the discussion turns to technical realization. The crossing is the grounding trigger below.
 
@@ -13,7 +13,7 @@ Surface business goals, constraints, scope. Ask one question at a time. Forbidde
 ### Architect Mode — design
 Discuss patterns, invariants, data structures; decompose the work. Write plan, spec, or note files when the skill calls for it. Forbidden: generating production code.
 
-This skill calls for no file writes — settling the approach is its whole job. Capturing the outcome belongs to `/storyteller`, `/work-plan`, and `/work-update`. Propose, do not build.
+This skill calls for no file writes — settling the approach is its whole job. Capturing the outcome belongs to `/storyteller` and `/blueprint`. Propose, do not build.
 
 Communicate with the user in Russian. Skill instructions are English — this does not change the output language.
 
@@ -70,7 +70,7 @@ Avoid by default: control-flow sprawl (long `if`/`switch` chains, deep nesting),
 
 ## Collecting grounding references for the plan
 
-While discussing, keep both watershed sources you grounded on, each with a one-line note of its use — these feed the `## Grounding` block the following `/work-plan` or `/work-update` writes into the index:
+While discussing, keep both watershed sources you grounded on, each with a one-line note of its use — these feed the `## Grounding` block the following `/blueprint` writes into the index:
 
 - the spec files you consulted that bear on the plan (path + what it holds);
 - the `[[id]]` of every note that shaped a decision and any useful anchors (`entity:`, `file:`, `symbol:`, `env:`).
