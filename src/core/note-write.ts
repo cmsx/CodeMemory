@@ -23,6 +23,7 @@ export class UnregisteredEntityError extends Error {
 }
 
 export interface NoteUpdate {
+  summary?: string;
   body?: string;
   anchors?: Anchor[];
   status?: NoteStatus;
@@ -119,6 +120,7 @@ export function updateNote(
       const existing = readNote(notesDir, id);
       const next: Note = {
         ...existing,
+        summary: update.summary ?? existing.summary,
         body: update.body ?? existing.body,
         anchors: update.anchors ?? existing.anchors,
         status: update.status ?? existing.status,

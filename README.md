@@ -14,12 +14,10 @@
 - **[`specs/`](specs/)** — дизайн сервиса: сервер, данные, поиск, MCP/CLI,
   тех-видение. Старт — [`specs/00-overview.md`](specs/00-overview.md).
 - **[`docs/workflow/`](docs/workflow/)** — экосистема скиллов: жизненный цикл
-  задачи, справочник по 10 скиллам, принципы context engineering.
+  задачи, справочник по 12 скиллам, принципы context engineering.
 - **[`docs/consumer-guide/`](docs/consumer-guide/)** — как обустроить
   документацию целевого проекта: 6-слойная спека, `RULES.md`, System-Aware
   Stories, форматы артефактов.
-- **[`docs/setup/`](docs/setup/)** — подключение в проект: миграция
-  консьюмера 1.x → 2.0.
 - **[`docs/contributing/`](docs/contributing/)** — для разработки сервиса и
   скиллов: стиль скиллов, coverage-чек-лист, ручное тестирование.
 

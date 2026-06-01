@@ -107,16 +107,17 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
   server.registerTool(
     "update_note",
     {
-      description: "Partially update a note: body, anchors, or status",
+      description: "Partially update a note: summary, body, anchors, or status",
       inputSchema: {
         id: z.string(),
+        summary: z.string().optional(),
         body: z.string().optional(),
         anchors: z.array(anchorSchema).optional(),
         status: statusSchema.optional(),
       },
     },
-    async ({ id, body, anchors, status }) => {
-      const note = updateNote(ctx.db, ctx.memoryDir, id, { body, anchors, status });
+    async ({ id, summary, body, anchors, status }) => {
+      const note = updateNote(ctx.db, ctx.memoryDir, id, { summary, body, anchors, status });
       if (anchors) {
         verifyAnchors(ctx.db, ctx.projectRoot, { uris: anchors.map((a) => a.uri) });
       }

@@ -271,7 +271,8 @@ Not the slug, not the first body sentence. Carries the note in compact
 
 Used when a `search` on the drafted anchors found an existing note that
 already covers the same scope. Merge into the existing note rather than
-duplicate.
+duplicate; refresh `summary` along with the body so the recall hook keeps
+matching it.
 
 ## `rename_anchor` contract
 

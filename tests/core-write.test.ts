@@ -131,6 +131,15 @@ describe("updateNote", () => {
     expect(onDisk.body).toBe(newBody);
   });
 
+  it("updates summary and persists it, preserving body", () => {
+    const { memoryDir, id } = setup();
+    const updated = updateNote(db, memoryDir, id, { summary: "Auth fix — video-first model" }, "2024-02-01");
+    expect(updated.summary).toBe("Auth fix — video-first model");
+    expect(updated.body).toBe(BODY);
+    const onDisk = readNote(join(memoryDir, "notes"), id);
+    expect(onDisk.summary).toBe("Auth fix — video-first model");
+  });
+
   it("changes status to outdated", () => {
     const { memoryDir, id } = setup();
     const updated = updateNote(db, memoryDir, id, { status: "outdated" }, "2024-02-01");
