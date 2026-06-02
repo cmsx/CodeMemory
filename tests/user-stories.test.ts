@@ -20,7 +20,7 @@ describe("Story 01 — возврат к давно тронутой облас�
 
   it("search даёт компактный список, get_notes разворачивает тело и карту якорей", async () => {
     // Фаза 1 — компактная выдача по entity:Order
-    const r = (await h.call("search", { anchors: ["entity:Order"] })) as {
+    const r = (await h.call("search", { anchors: ["entity:Order"], format: "json" })) as {
       hits: Record<string, unknown>[];
       total: number;
       truncated: boolean;
@@ -109,6 +109,7 @@ describe("Story 02 — инвариант не даёт повторить ус�
         "symbol:src/order.ts::formatOrder",    // core на filler-3
       ],
       limit: 1,
+      format: "json",
     })) as { hits: { id: string }[]; total: number; truncated: boolean };
 
     expect(r.total).toBe(4);
@@ -192,7 +193,7 @@ describe("Story 03 — capture после нетривиальной задач�
     expect(allUris).toContain("entity:Cart");
 
     // entity-якорь записан корректно — заметка находится через entity:Cart
-    const s = (await h.call("search", { anchors: ["entity:Cart"] })) as {
+    const s = (await h.call("search", { anchors: ["entity:Cart"], format: "json" })) as {
       hits: { id: string }[];
     };
     expect(s.hits.map((h) => h.id)).toContain(r.id);
@@ -249,6 +250,7 @@ describe("Story 04 — поиск по смутному воспоминанию
   it("текстовый поиск возвращает несколько хитов, лидер — наиболее релевантный", async () => {
     const r = (await h.call("search", {
       query: "повтор запрос backoff",
+      format: "json",
     })) as {
       hits: { id: string; summary: string }[];
       total: number;
@@ -283,7 +285,7 @@ describe("Story 05 — планирование фичи на существую
 
   it("list_entities отдаёт карту домена, search находит существующий инфра-узел", async () => {
     // Карта домена
-    const ents = (await h.call("list_entities")) as { name: string; description: string }[];
+    const ents = (await h.call("list_entities", { format: "json" })) as { name: string; description: string }[];
     expect(ents).toHaveLength(5);
     expect(ents.map((e) => e.name).sort()).toEqual([
       "Billing",
@@ -301,6 +303,7 @@ describe("Story 05 — планирование фичи на существую
     const r = (await h.call("search", {
       query: "начисления",
       anchors: ["entity:Billing"],
+      format: "json",
     })) as { hits: { id: string }[] };
 
     expect(r.hits.map((h) => h.id)).toContain("2026-05-14-invoice-totals");
@@ -344,7 +347,7 @@ describe("Story 06 — новое решение отменяет прежнее
     });
 
     // Дефолтный поиск: только текущая
-    const def = (await h.call("search", { anchors: ["entity:Pricing"] })) as {
+    const def = (await h.call("search", { anchors: ["entity:Pricing"], format: "json" })) as {
       hits: { id: string; status?: string }[];
     };
     expect(def.hits.map((h) => h.id)).toContain(newId);
@@ -354,6 +357,7 @@ describe("Story 06 — новое решение отменяет прежнее
     const arch = (await h.call("search", {
       anchors: ["entity:Pricing"],
       include_archived: true,
+      format: "json",
     })) as { hits: { id: string; status?: string }[] };
     const archIds = arch.hits.map((h) => h.id);
     expect(archIds).toContain(newId);
@@ -487,7 +491,7 @@ describe("Story 09 — онбординг существующего проек�
     })) as { id: string };
 
     // Draft вне дефолтного поиска
-    const s1 = (await h.call("search", { anchors: ["entity:Shipping"] })) as {
+    const s1 = (await h.call("search", { anchors: ["entity:Shipping"], format: "json" })) as {
       hits: { id: string }[];
     };
     expect(s1.hits.map((h) => h.id)).not.toContain(draftId);
@@ -496,7 +500,7 @@ describe("Story 09 — онбординг существующего проек�
     await h.call("update_note", { id: draftId, status: "current" });
 
     // После промоута — заметка видна
-    const s2 = (await h.call("search", { anchors: ["entity:Shipping"] })) as {
+    const s2 = (await h.call("search", { anchors: ["entity:Shipping"], format: "json" })) as {
       hits: { id: string }[];
     };
     expect(s2.hits.map((h) => h.id)).toContain(draftId);
@@ -525,7 +529,7 @@ describe("Story 10 — разбор незнакомого кода", () => {
     });
 
     // Поиск пуст — нет накопленных заметок
-    const empty = (await h.call("search", { anchors: ["entity:Refunds"] })) as {
+    const empty = (await h.call("search", { anchors: ["entity:Refunds"], format: "json" })) as {
       hits: unknown[];
       total: number;
     };
@@ -541,7 +545,7 @@ describe("Story 10 — разбор незнакомого кода", () => {
     })) as { id: string };
 
     // Теперь поиск находит заметку
-    const found = (await h.call("search", { anchors: ["entity:Refunds"] })) as {
+    const found = (await h.call("search", { anchors: ["entity:Refunds"], format: "json" })) as {
       hits: { id: string }[];
     };
     expect(found.hits.map((h) => h.id)).toContain(id);

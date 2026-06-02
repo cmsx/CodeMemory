@@ -53,7 +53,11 @@ beforeEach(async () => {
 
   writeFileSync(join(notesDir, "2024-01-01-alpha.md"), NOTE_MD("2024-01-01-alpha", "Alpha note"));
   writeFileSync(join(memoryDir, "entities.md"), ENTITIES_MD);
-  writeFileSync(join(tmpDir, "src", "main.ts"), "export function main() {}\nexport const version = '1';\n");
+  writeFileSync(
+    join(tmpDir, "src", "main.ts"),
+    "export function main() {}\nexport class App {\n  run() {}\n}\n",
+  );
+  writeFileSync(join(tmpDir, "src", "empty.ts"), "export const x = 1;\n");
   writeFileSync(join(tmpDir, ".gitignore"), "node_modules/\n");
 
   process.env.CMS_PROJECT_ROOT = tmpDir;
@@ -80,11 +84,15 @@ afterEach(async () => {
 // Helper
 // ------------------------------------------------------------------
 
-async function call(name: string, args: Record<string, unknown> = {}): Promise<unknown> {
+async function callText(name: string, args: Record<string, unknown> = {}): Promise<string> {
   const result = await client.callTool({ name, arguments: args });
   expect(result.isError).toBeFalsy();
   expect(result.content[0].type).toBe("text");
-  return JSON.parse((result.content[0] as { type: "text"; text: string }).text);
+  return (result.content[0] as { type: "text"; text: string }).text;
+}
+
+async function call(name: string, args: Record<string, unknown> = {}): Promise<unknown> {
+  return JSON.parse(await callText(name, args));
 }
 
 // ------------------------------------------------------------------
@@ -92,9 +100,55 @@ async function call(name: string, args: Record<string, unknown> = {}): Promise<u
 // ------------------------------------------------------------------
 
 describe("tool shapes (InMemory)", () => {
-  it("search returns {hits, total, truncated}", async () => {
-    const r = await call("search", { query: "Alpha" }) as { hits: unknown[]; total: number; truncated: boolean };
+  it("search returns MD by default: [[id]] summary per hit", async () => {
+    const text = await callText("search", { query: "Alpha" });
+    expect(text).toBe("[[2024-01-01-alpha]] Alpha note");
+  });
+
+  it("search marks a non-current note with [status]", async () => {
+    const { id } = await call("create_note", {
+      summary: "Stale insight",
+      body: "Body text",
+      anchors: [{ uri: "file:src/main.ts", weight: "core" }],
+    }) as { id: string };
+    await call("update_note", { id, status: "outdated" });
+    const text = await callText("search", { query: "Stale", include_archived: true });
+    expect(text).toBe(`[[${id}]] [outdated] Stale insight`);
+  });
+
+  it("search appends the truncation tail and total only when truncated", async () => {
+    const a = await call("create_note", {
+      summary: "Beta first",
+      body: "Body text",
+      anchors: [{ uri: "file:src/main.ts", weight: "core" }],
+    }) as { id: string };
+    const b = await call("create_note", {
+      summary: "Beta second",
+      body: "Body text",
+      anchors: [{ uri: "file:src/main.ts", weight: "core" }],
+    }) as { id: string };
+
+    const text = await callText("search", { query: "Beta", limit: 1 });
+    const lines = text.split("\n");
+    expect(lines).toHaveLength(2);
+    expect(lines[1]).toBe("— показано 1 из 2, сузь запрос");
+    expect([a.id, b.id]).toContain(lines[0].match(/\[\[([a-z0-9]{5})\]\]/)?.[1]);
+
+    // Not truncated → no tail line, total not printed.
+    const full = await callText("search", { query: "Beta" });
+    expect(full.split("\n")).toHaveLength(2);
+    expect(full).not.toContain("показано");
+  });
+
+  it("search returns a marker on empty results", async () => {
+    const text = await callText("search", { query: "nonexistentterm" });
+    expect(text).toBe("— ничего не найдено");
+  });
+
+  it("search with format:json returns the structured object unchanged", async () => {
+    const r = await call("search", { query: "Alpha", format: "json" }) as { hits: unknown[]; total: number; truncated: boolean };
     expect(r).toMatchObject({ hits: expect.any(Array), total: expect.any(Number), truncated: expect.any(Boolean) });
+    expect(r.hits[0]).toMatchObject({ id: "2024-01-01-alpha", summary: "Alpha note" });
   });
 
   it("get_notes returns {notes, missing}", async () => {
@@ -157,23 +211,43 @@ describe("tool shapes (InMemory)", () => {
     expect(r.name).toBe("Checkout");
   });
 
-  it("list_entities returns array with {name, description}", async () => {
-    const r = await call("list_entities") as { name: string; description: string }[];
-    expect(r).toBeInstanceOf(Array);
-    expect(r[0]).toMatchObject({ name: expect.any(String), description: expect.any(String) });
+  it("list_entities returns MD by default: **Name** — description per entity", async () => {
+    const text = await callText("list_entities");
+    expect(text).toBe("**Cart** — Pre-checkout item collection.");
   });
 
-  it("list_symbols_in_file returns array with symbol fields", async () => {
-    const r = await call("list_symbols_in_file", { path: "src/main.ts" }) as unknown[];
+  it("list_entities returns a marker on an empty registry", async () => {
+    rmSync(join(tmpDir, ".memory", "entities.md"));
+    const text = await callText("list_entities");
+    expect(text).toBe("— нет сущностей");
+  });
+
+  it("list_entities with format:json returns the array unchanged", async () => {
+    const r = await call("list_entities", { format: "json" }) as { name: string; description: string }[];
     expect(r).toBeInstanceOf(Array);
-    if (r.length > 0) {
-      expect(r[0]).toMatchObject({
-        name: expect.any(String),
-        kind: expect.any(String),
-        start_line: expect.any(Number),
-        end_line: expect.any(Number),
-      });
-    }
+    expect(r[0]).toMatchObject({ name: "Cart", description: "Pre-checkout item collection." });
+  });
+
+  it("list_symbols_in_file returns MD: top-level bare, member as Class.member", async () => {
+    const text = await callText("list_symbols_in_file", { path: "src/main.ts" });
+    expect(text).toBe(
+      ["function main  (1-1)", "class App  (2-4)", "method App.run  (3-3)"].join("\n"),
+    );
+  });
+
+  it("list_symbols_in_file returns a marker for a file without symbols", async () => {
+    const text = await callText("list_symbols_in_file", { path: "src/empty.ts" });
+    expect(text).toBe("— нет символов");
+  });
+
+  it("list_symbols_in_file with format:json returns the array unchanged", async () => {
+    const r = await call("list_symbols_in_file", { path: "src/main.ts", format: "json" }) as {
+      name: string; kind: string; parent: string | null; start_line: number; end_line: number;
+    }[];
+    expect(r).toBeInstanceOf(Array);
+    expect(r).toContainEqual({
+      name: "run", kind: "method", parent: "App", start_line: 3, end_line: 3,
+    });
   });
 
   it("listTools returns all 8 tools", async () => {

@@ -68,7 +68,7 @@ function flatAnchorUris(note: { anchorMap: { anchors: { uri: string }[] }[] }): 
 
 describe("read tools over HTTP", () => {
   it("search by query returns matching note with correct shape", async () => {
-    const r = await call("search", { query: "isEmpty" }) as {
+    const r = await call("search", { query: "isEmpty", format: "json" }) as {
       hits: { id: string; summary: string }[];
       total: number;
       truncated: boolean;
@@ -79,7 +79,7 @@ describe("read tools over HTTP", () => {
 
   it("search anchor-only without query (regression: search-bug)", async () => {
     // anchor-only search, no query argument — the bug was [query] not optional in CLI parser
-    const r = await call("search", { anchors: ["entity:Order"] }) as {
+    const r = await call("search", { anchors: ["entity:Order"], format: "json" }) as {
       hits: { id: string }[];
       total: number;
     };
@@ -121,7 +121,7 @@ describe("read tools over HTTP", () => {
   });
 
   it("list_entities returns all 5 fixture entities with name+description", async () => {
-    const r = await call("list_entities") as { name: string; description: string }[];
+    const r = await call("list_entities", { format: "json" }) as { name: string; description: string }[];
     expect(r).toHaveLength(5);
     const names = r.map((e) => e.name).sort();
     expect(names).toEqual(["Billing", "Cart", "Inventory", "Order", "Pricing"]);
@@ -129,7 +129,7 @@ describe("read tools over HTTP", () => {
   });
 
   it("list_symbols_in_file returns symbols for src/order.ts", async () => {
-    const r = await call("list_symbols_in_file", { path: "src/order.ts" }) as {
+    const r = await call("list_symbols_in_file", { path: "src/order.ts", format: "json" }) as {
       name: string; kind: string; parent: string | null; start_line: number; end_line: number;
     }[];
     expect(r.length).toBeGreaterThan(0);
@@ -157,7 +157,7 @@ describe("write tools over HTTP", () => {
     }) as { name: string };
     expect(r.name).toBe("Shipping");
 
-    const list = await call("list_entities") as { name: string }[];
+    const list = await call("list_entities", { format: "json" }) as { name: string }[];
     expect(list).toHaveLength(6);
     expect(list.map((e) => e.name)).toContain("Shipping");
   });

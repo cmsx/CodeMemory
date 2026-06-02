@@ -1,10 +1,10 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { search } from "../core/search.js";
+import { search, type SearchResult } from "../core/search.js";
 import { getNotes } from "../core/get-notes.js";
 import { anchorCoverageWarning, createNote, updateNote, renameAnchor } from "../core/note-write.js";
 import { createEntity } from "../core/entity-indexer.js";
-import { readEntities } from "../core/entity-store.js";
+import { readEntities, type Entity } from "../core/entity-store.js";
 import { verifyAnchors } from "../core/verifier.js";
 import type { McpCtx } from "./context.js";
 
@@ -15,6 +15,56 @@ const anchorSchema = z.object({ uri: z.string(), weight: weightSchema });
 const json = (x: unknown) => ({
   content: [{ type: "text" as const, text: JSON.stringify(x) }],
 });
+
+const text = (s: string) => ({
+  content: [{ type: "text" as const, text: s }],
+});
+
+type Format = "md" | "json" | undefined;
+
+// MD is the default; JSON is the byte-for-byte fallback through the format arg.
+// Single branch reused by every list/search tool — per-tool shape lives in mdFn.
+const respond = <T>(result: T, format: Format, mdFn: (r: T) => string) =>
+  format === "json" ? json(result) : text(mdFn(result));
+
+function searchToMd(result: SearchResult): string {
+  if (result.hits.length === 0) return "— ничего не найдено";
+  const lines = result.hits.map((h) =>
+    h.status ? `[[${h.id}]] [${h.status}] ${h.summary}` : `[[${h.id}]] ${h.summary}`,
+  );
+  if (result.truncated) {
+    lines.push(`— показано ${result.hits.length} из ${result.total}, сузь запрос`);
+  }
+  return lines.join("\n");
+}
+
+function entitiesToMd(rows: Entity[]): string {
+  if (rows.length === 0) return "— нет сущностей";
+  return rows.map((e) => `**${e.name}** — ${e.description}`).join("\n");
+}
+
+interface SymbolRow {
+  name: string;
+  kind: string;
+  parent: string | null;
+  start_line: number;
+  end_line: number;
+}
+
+function symbolsToMd(rows: SymbolRow[]): string {
+  if (rows.length === 0) return "— нет символов";
+  return rows
+    .map((r) => {
+      const label = r.parent ? `${r.parent}.${r.name}` : r.name;
+      return `${r.kind} ${label}  (${r.start_line}-${r.end_line})`;
+    })
+    .join("\n");
+}
+
+const formatSchema = z
+  .enum(["md", "json"])
+  .optional()
+  .describe("Output format; default md (compact). Pass json for the structured object.");
 
 export function registerTools(server: McpServer, ctx: McpCtx): void {
   server.registerTool(
@@ -37,6 +87,7 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
         // absent from the tool description: routine work uses targeted search.
         match_all: z.boolean().optional(),
         limit: z.number().int().positive().optional(),
+        format: formatSchema,
       },
     },
     async ({
@@ -48,8 +99,9 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
       strict,
       match_all,
       limit,
+      format,
     }) => {
-      return json(
+      return respond(
         search(ctx.db, {
           anchors,
           query,
@@ -60,6 +112,8 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
           match_all,
           limit,
         }),
+        format,
+        searchToMd,
       );
     },
   );
@@ -160,10 +214,12 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
     "list_entities",
     {
       description: "List all registered domain entities",
-      inputSchema: {},
+      inputSchema: {
+        format: formatSchema,
+      },
     },
-    async () => {
-      return json(readEntities(ctx.memoryDir));
+    async ({ format }) => {
+      return respond(readEntities(ctx.memoryDir), format, entitiesToMd);
     },
   );
 
@@ -173,16 +229,17 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
       description: "List code symbols in a file without reading the file",
       inputSchema: {
         path: z.string(),
+        format: formatSchema,
       },
     },
-    async ({ path }) => {
+    async ({ path, format }) => {
       const rows = ctx.db
         .prepare(
           `SELECT name, kind, parent, start_line, end_line
            FROM symbol_index WHERE file = ? ORDER BY start_line`,
         )
-        .all(path);
-      return json(rows);
+        .all(path) as unknown as SymbolRow[];
+      return respond(rows, format, symbolsToMd);
     },
   );
 }
