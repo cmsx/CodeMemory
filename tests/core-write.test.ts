@@ -7,6 +7,7 @@ import { openIndex } from "../src/core/index-layer.js";
 import { createEntity } from "../src/core/entity-indexer.js";
 import { LockTimeoutError, withLock } from "../src/core/lock.js";
 import {
+  InvalidSummaryError,
   UnregisteredEntityError,
   anchorCoverageWarning,
   createNote,
@@ -189,6 +190,87 @@ describe("updateNote", () => {
     expect(updated.anchors).toEqual(before.anchors);
     expect(updated.status).toBe(before.status);
     expect(updated.updated).toBe("2024-02-01");
+  });
+});
+
+describe("summary validation", () => {
+  let dir: string;
+  let db: DatabaseSync;
+
+  afterEach(() => {
+    db.close();
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  function setup() {
+    dir = mkdtempSync(join(tmpdir(), "cms-sv-"));
+    db = openIndex(join(dir, "index.db"));
+    return { memoryDir: dir, notesDir: join(dir, "notes") };
+  }
+
+  function countRows(table: string): number {
+    return (db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as { n: number }).n;
+  }
+
+  // Angle brackets and YAML flow/block indicators in a summary are the
+  // documented corruption vector: < > open block scalars and carry the
+  // tool-call </parameter> leak. The summary must be plain prose text.
+  const FORBIDDEN: Array<[string, string]> = [
+    ["angle open", "Fix <system> handling"],
+    ["angle close", "Done body> wiring"],
+    ["tool-call leak", 'Fix </parameter> <parameter name="body">'],
+    ["curly open", "Map of {a merged"],
+    ["curly close", "Map of a} merged"],
+    ["square open", "List [item one"],
+    ["square close", "List item] one"],
+    ["pipe", "either | or"],
+    ["backtick", "use `inline` code"],
+  ];
+
+  it.each(FORBIDDEN)("createNote rejects summary with %s", (_label, summary) => {
+    const { memoryDir } = setup();
+    expect(() => createNote(db, memoryDir, summary, BODY, ANCHORS, "current", "2024-01-01")).toThrow(
+      InvalidSummaryError,
+    );
+  });
+
+  it("createNote writes nothing on a rejected summary", () => {
+    const { memoryDir, notesDir } = setup();
+    expect(() =>
+      createNote(db, memoryDir, "bad <system>", BODY, ANCHORS, "current", "2024-01-01"),
+    ).toThrow(InvalidSummaryError);
+    expect(existsSync(notesDir)).toBe(false);
+    expect(countRows("notes")).toBe(0);
+  });
+
+  const ALLOWED: Array<[string, string]> = [
+    ["colon + parens", "Refactor: split parser (phase 1/2)"],
+    ["quotes + dash", `Fixed "token" cache — race resolved`],
+    ["punctuation", "Done! Why? Maybe; later, etc."],
+    ["unicode", "Кэш токенов — починили race ⚡"],
+    ["slash + amp", "I/O retries & backoff @ startup"],
+  ];
+
+  it.each(ALLOWED)("createNote accepts plain-text summary: %s", (_label, summary) => {
+    const { memoryDir } = setup();
+    const note = createNote(db, memoryDir, summary, BODY, ANCHORS, "current", "2024-01-01");
+    expect(readNote(join(memoryDir, "notes"), note.id).summary).toBe(summary);
+  });
+
+  it("updateNote rejects a summary with forbidden chars and leaves the note untouched", () => {
+    const { memoryDir } = setup();
+    const note = createNote(db, memoryDir, "Original", BODY, ANCHORS, "current", "2024-01-01");
+    expect(() =>
+      updateNote(db, memoryDir, note.id, { summary: "broken <system>" }, "2024-02-01"),
+    ).toThrow(InvalidSummaryError);
+    expect(readNote(join(memoryDir, "notes"), note.id).summary).toBe("Original");
+  });
+
+  it("updateNote allows a clean summary edit", () => {
+    const { memoryDir } = setup();
+    const note = createNote(db, memoryDir, "Original", BODY, ANCHORS, "current", "2024-01-01");
+    const updated = updateNote(db, memoryDir, note.id, { summary: "Reworked: phase 2" }, "2024-02-01");
+    expect(updated.summary).toBe("Reworked: phase 2");
   });
 });
 

@@ -72,6 +72,71 @@ describe("note-store", () => {
     });
   });
 
+  describe("special characters round-trip", () => {
+    // A note's summary lands in YAML frontmatter, its body lands in the
+    // content block. Both must survive write→read byte-identical regardless
+    // of what the LLM put in them. The literal that motivated this:
+    // a tool-call whose parameter boundary broke, leaving </parameter> and
+    // <parameter name="body"> dragged into the summary string.
+    const NASTY_SUMMARIES: Array<[string, string]> = [
+      ["tool-call boundary leak", 'Fix </parameter> <parameter name="body"> handling'],
+      ["colon-space", "Refactor: split the parser into two phases"],
+      ["leading dash", "- not a list item, just a summary"],
+      ["leading hash", "# not a heading"],
+      ["yaml flow chars", "Map of {a: 1, b: [2, 3]} merged into one"],
+      ["quotes both kinds", `He said "yes" and 'no' in one breath`],
+      ["yaml keyword null", "null"],
+      ["yaml keyword bool", "yes"],
+      ["numeric-looking", "12345"],
+      ["just dashes", "---"],
+      ["anchor-special", "Handle @ref, &amp, *glob, |pipe, >fold, !bang"],
+      ["backslashes", "path C:\\Users\\x and regex \\d+\\s*"],
+      ["unicode + emoji", "Кэш токенов 🔑 — починили race ⚡"],
+      ["trailing spaces", "summary with trailing spaces   "],
+      ["tab inside", "summary\twith\ttabs"],
+      ["newline inside", "first line\nsecond line"],
+      ["percent start", "%YAML looking start"],
+      ["at and backtick", "@decorator and `inline code`"],
+    ];
+
+    it.each(NASTY_SUMMARIES)("summary round-trips: %s", (_label, summary) => {
+      const note: Note = { ...SAMPLE, summary };
+      const notesDir = join(tmpDir(), "notes");
+      writeNote(notesDir, note);
+      expect(readNote(notesDir, note.id).summary).toBe(summary);
+    });
+
+    const NASTY_BODIES: Array<[string, string]> = [
+      ["markdown hr", "Intro paragraph.\n\n---\n\nAfter the rule."],
+      ["leading hr", "---\n\nBody that opens with a horizontal rule."],
+      ["embedded frontmatter", "Looks like:\n\n---\nid: fake\nsummary: x\n---\n\nend"],
+      ["tool-call leak", 'Body with </parameter> and <parameter name="body"> inside'],
+      ["html-ish tags", "Use <system> and <garbage:foo> markers in text"],
+      ["yaml-ish lines", "key: value\nother: thing\n- item"],
+      ["unicode + emoji", "Тело заметки 🔑 with mixed ⚡ scripts"],
+      ["triple backtick fence", "```ts\nconst x: number = 1;\n```"],
+      ["only dashes", "---"],
+    ];
+
+    it.each(NASTY_BODIES)("body round-trips: %s", (_label, body) => {
+      const note: Note = { ...SAMPLE, body };
+      const notesDir = join(tmpDir(), "notes");
+      writeNote(notesDir, note);
+      expect(readNote(notesDir, note.id).body).toBe(body.trim());
+    });
+
+    it("full note with nasty summary and body round-trips equal", () => {
+      const note: Note = {
+        ...SAMPLE,
+        summary: 'Fix </parameter> <parameter name="body"> with: colons "quotes"',
+        body: "Intro\n\n---\n\n<system> tag and key: value lines",
+      };
+      const notesDir = join(tmpDir(), "notes");
+      writeNote(notesDir, note);
+      expect(readNote(notesDir, note.id)).toEqual(note);
+    });
+  });
+
   describe("parseNote — invalid frontmatter", () => {
     it("throws on broken YAML", () => {
       expect(() => parseNote("x.md", "---\n: : : bad\n---\nbody")).toThrow();

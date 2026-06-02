@@ -148,7 +148,13 @@ export function serializeNote(note: Note): string {
     updated: note.updated,
     anchors: note.anchors,
   };
-  return matter.stringify(note.body.trim(), data);
+  // Never hand the body to matter.stringify as its content arg: gray-matter
+  // re-parses a content string that opens with the `---` delimiter (a plain
+  // Markdown thematic break) as frontmatter, spilling the body into the data
+  // map char-by-char and dropping it on read. Serialize the frontmatter with
+  // an empty body, then append the real body behind the delimiter ourselves.
+  const frontmatter = matter.stringify("", data).trimEnd();
+  return `${frontmatter}\n\n${note.body.trim()}\n`;
 }
 
 export function writeNote(notesDir: string, note: Note): void {

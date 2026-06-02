@@ -22,6 +22,32 @@ export class UnregisteredEntityError extends Error {
   }
 }
 
+export class InvalidSummaryError extends Error {
+  constructor(found: string) {
+    super(
+      `summary must be plain text — it cannot contain ${found}. ` +
+        "Angle brackets and YAML indicators (< > { } [ ] | `) corrupt the note's " +
+        "frontmatter and are the signature of a broken tool-call boundary; " +
+        "rewrite the summary as prose and put any markup in the body.",
+    );
+    this.name = "InvalidSummaryError";
+  }
+}
+
+// Angle brackets open YAML block scalars and carry the </parameter> tool-call
+// leak; the flow indicators { } [ ] and | ` likewise break the frontmatter
+// scalar. The summary is a one-line prose field — keep it plain text and let
+// the body hold any markup.
+const FORBIDDEN_SUMMARY_CHARS = /[<>{}[\]|`]/g;
+
+function validateSummary(summary: string): void {
+  const hits = summary.match(FORBIDDEN_SUMMARY_CHARS);
+  if (hits) {
+    const unique = [...new Set(hits)].join(" ");
+    throw new InvalidSummaryError(unique);
+  }
+}
+
 export interface NoteUpdate {
   summary?: string;
   body?: string;
@@ -95,6 +121,7 @@ export function createNote(
   return withLock(
     memoryDir,
     () => {
+      validateSummary(summary);
       validateAnchors(db, anchors);
       const id = uniqueNoteId(notesDir);
       const note: Note = { id, summary, status, created: now, updated: now, anchors, body };
@@ -117,6 +144,7 @@ export function updateNote(
   return withLock(
     memoryDir,
     () => {
+      if (update.summary !== undefined) validateSummary(update.summary);
       const existing = readNote(notesDir, id);
       const next: Note = {
         ...existing,

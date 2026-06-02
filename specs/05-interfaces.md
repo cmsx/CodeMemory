@@ -74,7 +74,8 @@ JSON-объект доступен через параметр `format: "md" | "
 
 Capture новой заметки.
 
-- `summary: string`
+- `summary: string` — только текст; запрещены `< > { } [ ] | \`` (см. `04`),
+  отказ при нарушении
 - `body: string`
 - `anchors: {uri, weight}[]`
 - `status: enum` — дефолт `current` (интерактивный capture; онбординг передаёт

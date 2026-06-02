@@ -12,6 +12,13 @@ const weightSchema = z.enum(["critical", "core", "supporting", "incidental"]);
 const statusSchema = z.enum(["current", "outdated", "draft"]);
 const anchorSchema = z.object({ uri: z.string(), weight: weightSchema });
 
+const summarySchema = z
+  .string()
+  .describe(
+    "Plain-text one-line announce of the note. Must not contain < > { } [ ] | ` " +
+      "(YAML indicators that corrupt frontmatter); put any markup in body.",
+  );
+
 const json = (x: unknown) => ({
   content: [{ type: "text" as const, text: JSON.stringify(x) }],
 });
@@ -137,7 +144,7 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
       description:
         "Capture a new memory note. Do not pass an id — the server generates a short hash id and returns it.",
       inputSchema: {
-        summary: z.string(),
+        summary: summarySchema,
         body: z.string(),
         anchors: z.array(anchorSchema),
         status: statusSchema.optional(),
@@ -164,7 +171,7 @@ export function registerTools(server: McpServer, ctx: McpCtx): void {
       description: "Partially update a note: summary, body, anchors, or status",
       inputSchema: {
         id: z.string(),
-        summary: z.string().optional(),
+        summary: summarySchema.optional(),
         body: z.string().optional(),
         anchors: z.array(anchorSchema).optional(),
         status: statusSchema.optional(),
