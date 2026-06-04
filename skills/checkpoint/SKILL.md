@@ -14,7 +14,7 @@ Communicate with the user in Russian. Write all plan files and notes in Russian.
 This skill saves state; it does not close the stage. Its terminal effects are the opposite of `/step-done`:
 
 - Do **not** capture to Code Memory (`/mem`) — capture is owned by `/step-done` on a green stage; mid-stage findings stay in the step file.
-- Do **not** delete the `<prefix>-run.md` — it is preserved scaffolding a fresh `/work` re-reads on re-entry.
+- Do **not** delete the `run-<NN>.md` — it is preserved scaffolding a fresh `/work` re-reads on re-entry.
 - Do **not** check the stage `[x]` in the index — the stage is unfinished.
 - Do **not** touch `specs/`.
 

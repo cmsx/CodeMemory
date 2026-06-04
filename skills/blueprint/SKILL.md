@@ -1,6 +1,6 @@
 ---
 name: blueprint
-description: Create or amend the plan files under plans/ that drive step-by-step execution — with no @path it writes a fresh plan (status active when no plan holds the focus, otherwise a backlog draft); with @path it applies a discussion outcome to the named plan, re-decomposing open stages and recording the change as a deviation without disturbing closed [x] stages. Use only when explicitly invoked as /blueprint (optionally /blueprint @<path-to-index>).
+description: Create or amend the plan files under plans/ that drive step-by-step execution — with no @path it writes a fresh plan; with @path it applies a discussion outcome to the named plan. Use only when explicitly invoked as /blueprint (optionally /blueprint @<path-to-index>).
 ---
 
 # /blueprint — author and amend plans
@@ -31,7 +31,7 @@ Walk these steps in order; the artifact of each is visible before the next, and 
 3. **Ground** any area not yet grounded this session — both sources, report the status line (below). On create, most grounding is already done in `/grill`; ground here only what the plan reaches that the discussion did not. On amend, a new tail is a fresh area — ground it as if planning from scratch.
 4. **Retrospective check** — test every new or changed stage against the three failures below.
 5. **Architecture block** — present it in chat, integrating any memory-driven decision through the Synthesis Form. On amend, the block justifies why the plan changes and how it relates to the closed stages.
-6. **Decompose** into stages, each one atomic meaningful commit. On amend, re-decompose only not-yet-done stages, leaving `[x]` untouched.
+6. **Decompose** into stages, each one atomic meaningful commit, Tracer-Bullet slice by default (see Stage granularity). For each stage link the user stories it satisfies, set its gate strategy (see Stage gate contract), and set its development mode (see Stage development mode). On amend, re-decompose only not-yet-done stages, leaving `[x]` untouched.
 7. **Write** the files (see Writing below).
 8. **Report** the prefix, the changed file list, and any open question left for the user. On amend of a `draft` with no active plan, make the activate offer here.
 
@@ -84,7 +84,7 @@ You own the synthesis — not "Вот что я нашёл: [[id]] говори�
 
 ## Writing
 
-**Create** — write the index and every step file from the templates. Set the index `status:` to the value Dispatch determined (`active` or `draft`). Fill `## Grounding` with both sources collected in `/grill`.
+**Create** — write the index and every step file from the templates. Set the index `status:` to the value Dispatch determined (`active` or `draft`). Fill `## Grounding` with both sources collected in `/grill`. In each step file fill `## Связанные истории` and `## Стратегия гейта` per the Stage gate contract and `## Режим разработки` per Stage development mode; leave `## Журнал проходов` and `## Отложенные решения` as their template stubs — `/autopilot` owns them.
 
 **Amend** — update the named index in place:
 
@@ -96,6 +96,21 @@ You own the synthesis — not "Вот что я нашёл: [[id]] говори�
 ## Stage granularity
 
 A stage = one atomic meaningful commit. Not "add an import", not "do the backend". Split axes: layers (mock → real), sequential integration, refactor → feature, per-module. A commit need not be runnable but must be one meaningful unit of change. Do not smear identical actions across commits; do not mix unrelated concerns in one.
+
+**Tracer-Bullet is the default cut.** Decompose into thin vertical slices — a stage carries its micro-backend, its UI, and the E2E that proves the slice end to end, in one commit. A backend-only stage is allowed but is the justified exception (infrastructure with no user-facing surface yet, a pure algorithm, a migration) — name the reason in the stage. The default is the slice, not the layer.
+
+## Stage gate contract
+
+Every stage declares how it will be validated, in two sections the step file carries:
+
+- **`## Связанные истории`** — the `<id>` of the System-Aware User Stories under `specs/product/user-stories/` the stage must satisfy. Link a story whenever the stage delivers a user-facing slice it describes. The presence of a story is the gate selector — an invariant of the format, not a free choice.
+- **`## Стратегия гейта`** — derived from the stories, never chosen freely: no linked story → `test` (gate on the raw full-suite output); one or more → `e2e` plus a pointer to the project's launch mechanism and `precondition` seeding, without which the E2E gate cannot run.
+
+Leave both empty (`—`) only for a stage with no user-facing behavior — the same exception that justifies a backend-only cut.
+
+## Stage development mode
+
+Every stage also declares `## Режим разработки` — how `/work` writes its code: `standard` (the default, also when absent), `tdd`, or `ui`. An authored choice, not derived from the stories. `standard` is the normal flow — the full Testing Discipline without strict test-first ordering. Set `tdd` for a stage whose testable logic is worth writing Red-Green-Refactor. Set `ui` only for an exploratory UI or markup stage where a test cannot precede the code; it is proved by the UI validation branch instead. The mode is independent of the gate — a `tdd` stage may still gate on `e2e`.
 
 ## Index note taxonomy
 
@@ -185,12 +200,30 @@ created: YYYY-MM-DD
 - <Метрика успеха 1>
 - <Метрика успеха 2 (например, написан функциональный тест на смену статусов)>
 
+## Связанные истории
+<id историй из specs/product/user-stories/, которые этап обязан удовлетворить. Наличие хотя бы одной — селектор ветки гейта: пусто → тест-гейт; есть → E2E по истории. Это инвариант формата, а не украшение. Пусто — оставить «—».>
+- <story-id>
+
+## Стратегия гейта
+<Производна от ## Связанные истории, не свободный выбор. Пусто историй → `test` (гейт по сырому выводу полного прогона тестов). Есть истории → `e2e` плюс указатель на механизм запуска приложения и сева precondition — без него E2E-гейт невозможен.>
+
+## Режим разработки
+<Как /work пишет код на этапе. Авторский выбор, не производное от историй. `standard` (дефолт, он же пусто) → обычный поток: полная Testing Discipline без строгого test-first. `tdd` → надстройка Red-Green-Refactor на всю новую функциональность. `ui` → исследовательский UI/вёрстка, проверяемая UI-веткой валидации. Режим независим от гейта.>
+
 ## Подзадачи
 - [ ] <Микро-шаг>
 - [ ] <Микро-шаг>
 
 ## Рабочие заметки
 *(Заполняется в процессе работы скиллом /work. ЗАПРЕЩЕНО писать сюда git diff или пересказ кода. Писать только: с какими проблемами столкнулся, почему тест упал, какое новое ограничение выявил).*
+
+## Журнал проходов
+*(Счётчик-артефакт стоп-крана, заполняется /autopilot. Строка на каждый проход валидации; 3 прохода без зелёного → стоп и эскалация. Пусто при ручном /work.)*
+- проход 1: <вердикт · дефект, если есть>
+
+## Отложенные решения
+*(Tier-B моки, заполняется /autopilot: что отложено · почему · маркер в коде · downstream-зависимость. Обязаны всплыть в финальном отчёте. Пусто при ручном /work.)*
+- <решение> · <маркер> · <downstream>
 ```
 
 ## Search contract

@@ -66,6 +66,10 @@ The model can skip a step only visibly — the absent artifact is the signal.
   Synthesis Form skeletons.
 - One term per concept; do not rename mid-skill.
 - No time-sensitive info — no "currently", no aging version numbers.
+- No edit-narration. A skill is read whole and as-is; it carries no history of
+  its own versions. Remove behavior by deleting the instruction, not by noting
+  it was removed or moved; change behavior by stating only the new rule.
+  "No longer …", "previously …", "now handled by X instead" never should appear in the skill
 - Terse at every length. No line limit, but every line earns its place.
 
 ## Description discipline
@@ -110,6 +114,21 @@ Duplication between two skills of the same family is handled by the
 `core.md` sync workflow above; duplication inside one skill is always a
 defect.
 
+## Locality — a skill states only what binds it
+
+A skill describes its own behavior: what it does, what it must not do, what it
+produces. A fact about *another* skill's behavior — who else reads the artifact
+it writes, who deletes it later, why a downstream skill needs it — imposes no
+constraint here; the skill does the same thing whether or not the note is
+present. Such a fact has one home: the skill it binds, plus the shared lifecycle
+in its contract doc (`formats.md`, a family `core.md`), named once — not
+cross-posted into every skill that touches the artifact.
+
+Binary test for any sentence naming another skill: does cutting it change what
+**this** skill must do? No → it is commentary; cut it. A reference that routes
+control stays — "Run `/other-skill`", "the verdict the orchestrator reads" bind
+this skill's own flow; a description of the other skill's reasoning does not.
+
 ## Progressive disclosure
 
 - `SKILL.md` is always loaded. It must be self-sufficient for the normal
@@ -149,7 +168,12 @@ When skills share a workflow and a `core.md`:
       temptations.
 - [ ] Imperative throughout; no prose, no rhetoric, no illustrative
       examples.
+- [ ] No edit-narration: current behavior only, no "no longer / previously /
+      moved elsewhere" notes about what changed.
 - [ ] Body does not restate the description; no internal duplication.
+- [ ] Locality: every sentence naming another skill binds this skill's own
+      behavior or routes its control — no commentary describing what another
+      skill does with the artifact.
 - [ ] Inlined slices match the current `core.md`; framing/rationale not
       copied; no provenance label on the slice.
 - [ ] Companion pointers carry trigger conditions.

@@ -223,12 +223,17 @@ caller's job.
 
 ### The run-file
 
-One `<prefix>-run.md` per plan — the current stage's scaffolding. Overwritten on
-each stage, gitignored with the rest of `plans/`, deleted by `/step-done`
-when the stage closes. It carries the reconnaissance map (template in
-`docs/consumer-guide/formats.md`): the stage scope, a per-file relevance verdict
-with coordinates, the relevant notes (`[[id]]` + why), the relevant entities,
-what was checked and ruled out, and an escape hatch for deeper research.
+One `run-<NN>.md` per stage, under `plans/<prefix>/` — the stage's reconnaissance
+scaffolding, co-located with the other per-step artifacts (`step-<NN>.md`,
+`diagnose-<NN>.md`). It is a retained per-step artifact, not deleted at stage
+close: overwritten only within its own stage (a fix-forward re-scouts the same
+`NN`), separate across stages. Gitignored with the rest of `plans/`. Two
+consumers — `/work`, and `/diagnose` when a later defect roots in this stage's
+code; swept by `/finalize` at plan close, never by `/step-done`. It carries the
+reconnaissance map (template in `docs/consumer-guide/formats.md`): the stage
+scope, a per-file relevance verdict with coordinates, the relevant notes
+(`[[id]]` + why), the relevant entities, what was checked and ruled out, and an
+escape hatch for deeper research.
 
 Persisting for the whole stage is deliberate. The map is the stage's context
 bundle — sized to the atomic unit of work, not to a file count — and its second
@@ -344,6 +349,35 @@ explicit solution is clearer.
 - A stage ends only when the full project test suite passes — no failing or
   skipped test carries into `/step-done`.
 
+### Development mode overlay
+
+The stage's `## Режим разработки` marker selects the writing discipline —
+`standard` (the default, also when the marker is absent), `tdd`, or `ui`:
+
+- **standard** — the normal flow: the full Testing Discipline above, code and
+  its tests written together in the stage, with no strict test-first ordering on
+  new functionality. The bug-fix Red-Green rule still holds — it belongs to the
+  Testing Discipline, not to this overlay.
+- **tdd** — adds the strict Red-Green-Refactor overlay below, generalizing the
+  bug-fix Red-Green to all new functionality.
+- **ui** — overlay off: the stage is exploratory UI or markup where a test
+  cannot precede the code, proved by the UI validation branch (`/validate`) on
+  its linked story instead.
+
+Under the `tdd` overlay the order is strict, one failing test at a time:
+
+- **Red** — write a single failing test for the next required behavior; run it
+  and confirm it fails for the intended reason.
+- **Green** — write the minimal code that makes it pass, no more than the test
+  demands.
+- **Refactor** — an explicit third phase while green: remove duplication and
+  clarify names with the suite as the safety net.
+
+The `tdd` overlay generalizes the bug-fix Red-Green above to all new
+functionality; everything else in this section — against requirements, unit vs
+feature, state-machine coverage, failure paths — is inherited unchanged by every
+mode.
+
 ## Working notes discipline
 
 `## Рабочие заметки` in the step file records only the struggle and the
@@ -371,6 +405,31 @@ method". The code is in git; these notes keep the residue git cannot show.
   not such a case: both are tracked in git and follow already-settled
   decisions, so apply them without a re-confirmation pause.
 - Never delete plan files automatically — deletion is manual.
+
+## Interaction mode
+
+Interaction mode is an orthogonal axis: it governs whether a skill may block on
+a human, not what the skill may produce. It does not replace or alter the Mode
+(Ask / Architect / Code / a bespoke Mode) — a skill runs under both at once.
+
+- **attended** — the skill may stop and ask the user, then continue on the
+  answer.
+- **autonomous** — the skill never blocks on a question. It takes the best
+  acceptable default and logs the choice; with no acceptable default it ends
+  through its own terminal artifact — a verdict, a stop, a returned pointer —
+  instead of waiting on a person.
+
+**Point to a human follows the channel, not a flag.** An inline call by the user
+is attended — the channel to a person is open. A skill spawned as a subagent is
+always autonomous: its return goes to the parent, not the user, so a blocking
+question could never be answered.
+
+**Abort signal.** The terminal artifact a skill already produces is its
+autonomous exit — the executor needs no new blocking branch to fall back on. A
+skill whose every path already ends in a clean terminal artifact is
+autonomous-safe with no behavioral change; only a skill that genuinely branches
+on a human answer (`/work`, `/finalize`) carries a real attended↔autonomous
+fork.
 
 ## Templates
 

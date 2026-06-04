@@ -23,8 +23,7 @@ Communicate with the user in Russian. Write all plan files and notes in Russian.
 5. **Capture** each ADR-worthy item via `/mem`, collecting its `[[id]]`.
 6. **Summarize** the classified items into the index sections, carrying `[[id]]` where one exists.
 7. **Check off** the current stage `[x]`.
-8. **Delete** the plan's `<prefix>-run.md` if present — it was reconnaissance scaffolding for the stage now closed.
-9. Report: which plan and stage closed, what went to the index, the `[[id]]` captured.
+8. Report: which plan and stage closed, what went to the index, the `[[id]]` captured.
 
 ## Classification
 
@@ -59,3 +58,11 @@ This is the capture point — never capture mid-stage, and never put plan-proces
 ## Checking off the stage
 
 Edit only the current stage's line in `## Этапы`: `[ ]` → `[x]`. Leave every other stage untouched — never renumber, rewrite, or reopen another stage.
+
+## Interaction mode
+
+Attended or autonomous, orthogonal to Architect Mode and set by the invocation
+channel: inline is attended, a spawned run is autonomous. The skill never blocks
+on a human under either — it has no branch that waits on a person. When the
+stage is not actually finished it stops and reports (step 3); that stop is its
+autonomous exit, not a question.

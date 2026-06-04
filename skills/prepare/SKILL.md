@@ -26,7 +26,7 @@ A partial map — first two files skimmed, first hits dumped — is worse than n
 4. **Verdict per candidate.** For each: needed or not, why it is relevant, and the coordinates to look at (symbols, line ranges). Relevance verdicts only — never a recipe for how to implement.
 5. **Validate — reverse blind-spot.** Hand the map, in your head, to a model with none of your reconnaissance context: where are its blind spots? Close the gaps; mark what stays a guess versus what you verified.
 6. **Validate — sufficiency against the task.** Re-read the step file's `## Цель шага`, `## Definition of done`, and `## Подзадачи`, and confirm the map charts the context each one needs. A DoD item with no coordinate on the map is a gap — close it before writing.
-7. **Write the run-file.** Write `<prefix>-run.md` (template below), including the compact "Проверено и отброшено" — candidate territory checked and ruled out, search angles that came back dry. Each is a terse trigger, not prose: it spares the executor a dead end, and defending a negative forces you to have actually checked it.
+7. **Write the run-file.** Write `plans/<prefix>/run-<NN>.md` (template below), including the compact "Проверено и отброшено" — candidate territory checked and ruled out, search angles that came back dry. Each is a terse trigger, not prose: it spares the executor a dead end, and defending a negative forces you to have actually checked it.
 8. **Present super-compact.** The run-file holds the detail; do not re-dump it in chat. Report in a few lines: the run-file written, and the single standout — the most valuable or unexpected find the executor would not have guessed. Choosing the best find is the last self-check: nothing stands out → the reconnaissance was shallow, go back and dig.
 
 ## Plan resolution
@@ -87,3 +87,11 @@ Each search tied to a discrete unit of work reports a one-line status in chat: `
 - Prescribing the implementation — signatures, approach, and test strategy are `/work`'s, not the map's.
 - A symbol-range skim of a central file the executor must edit — read it whole.
 - Silent omission — territory checked and ruled out goes in "Проверено и отброшено", not nowhere.
+
+## Interaction mode
+
+Attended or autonomous, orthogonal to Reconnaissance Mode and set by the
+invocation channel: an inline `/prepare` is attended, a `/prepare` spawned by
+`/work` is autonomous. The skill never blocks on a human under either — the
+run-file is its single output on every path, so there is nothing to ask before
+finishing.

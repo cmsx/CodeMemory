@@ -10,7 +10,7 @@ Architect Mode (consolidation). Every stage is built and checked; this reflects 
 ### Architect Mode — design
 Discuss patterns, invariants, data structures; decompose the work. Write plan, spec, or note files when the skill calls for it. Forbidden: generating production code.
 
-This skill edits `specs/` and captures memory notes only — no production code. Never delete plan files — deletion is manual.
+This skill edits `specs/` and captures memory notes only — no production code. The plan's record files — the index and step files — are never deleted automatically; that is manual.
 
 Communicate with the user in Russian. Write all spec edits and notes in Russian. Skill instructions are English — this does not change the output language.
 
@@ -18,12 +18,13 @@ Communicate with the user in Russian. Write all spec edits and notes in Russian.
 
 1. Resolve the plan: `@<path>` → that index; no argument → the single `plans/*-00-index.md` with `status: active`. None or several active without an argument → refuse, report, ask for `@<path>`. Read the index in full.
 2. Confirm every stage in `## Этапы` is `[x]`. Any stage unchecked → report which remain and stop; do not finalize an unfinished plan.
-3. Review the index's four sections — Решения, Отклонения, Edge cases, Открытые вопросы — as the plan's accumulated knowledge. Edge cases still uncovered by code or tests, and Открытые вопросы still open → raise with the user before closing.
+3. Review the index's four sections — Решения, Отклонения, Edge cases, Открытые вопросы — as the plan's accumulated knowledge. Edge cases still uncovered by code or tests, and Открытые вопросы still open → attended: raise with the user before closing; autonomous: surface them in the return and stop without marking `completed`, leaving escalation to the parent (`## Interaction mode`).
 4. **Classify** the plan's decisions at the watershed (trajectory below) — the routing list, produced before any write.
 5. **Update specs** for the spec-side items.
 6. **Capture** each plan-global ADR via `/mem`, collecting its `[[id]]`.
 7. **Mark completed**: change `status: active` → `status: completed` in the index frontmatter.
-8. Report: which spec files changed and where, which `[[id]]` captured, that the plan is `completed`, and that plan files are left for manual deletion.
+8. **Sweep the run-files**: delete the plan's `plans/<prefix>/run-<NN>.md` reconnaissance files.
+9. Report: which spec files changed and where, which `[[id]]` captured, that the plan is `completed`, and that the plan's record files are left for manual deletion.
 
 ## Classification
 
@@ -49,3 +50,11 @@ This is the plan's final capture point — fold the stage-level residue into the
 ## Marking completed
 
 Edit only the `status:` field in the index frontmatter: `active` → `completed`. Leave the stages, sections, and Grounding block intact — the finalized index stays as the plan's record.
+
+## Interaction mode
+
+Attended or autonomous, orthogonal to Architect Mode and set by the invocation
+channel: an inline `/finalize` is attended — it may stop and ask the user; a
+`/finalize` spawned as a subagent is always autonomous — no channel to a person,
+so it never blocks on a question and falls back to its stop-and-surface exit
+(step 3) instead.

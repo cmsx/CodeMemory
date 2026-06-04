@@ -17,7 +17,7 @@ Communicate with the user in Russian. Write all plan files and notes in Russian.
 1. Resolve the plan: `@<path>` → that index; no argument → the single `plans/*-00-index.md` with `status: active`. None or several active without an argument → refuse, report, ask for `@<path>`. Read the index in full.
 2. Find the current stage — the first one without `[x]` in `## Этапы`. Read its `<prefix>-NN-<slug>.md` step file in full, including `## Рабочие заметки`.
 3. **Reconnaissance — decide the route, load context to match.** State the route in one explicit line. The rules floor — the `specs/` root incl. `RULES.md` (the index is read in step 1) — is always loaded; the routes differ on the domain map.
-   - A current `<prefix>-run.md` exists → use it. This is also re-entry after an interruption — a fresh context returns through the map instead of researching the stage again. Load the rules floor; take the domain map from the run-file's `## Сущности` slice.
+   - A current `run-<NN>.md` exists → use it. This is also re-entry after an interruption — a fresh context returns through the map instead of researching the stage again. Load the rules floor; take the domain map from the run-file's `## Сущности` slice.
    - No run-file → **delegate** by default (`этап крупный → делегирую разведку`). The map is the norm: it carries the stage's full context and anchors that re-entry — stage size is not the gate. Load only the rules floor yourself — do not pull the full `list_entities`. Spawn a general-purpose subagent on the Sonnet model and task it with invoking `/prepare @<index-path>` — the subagent runs the skill, `prepare` is not an agent type. It self-primes the domain map in its own context, writes the run-file, returns. Take entities from the run-file slice; reach for the full `list_entities` only through the run-file's escape hatch.
    - No run-file, and the stage is trivial — gathering is a couple of obvious reads, nothing to chart and no re-entry concern → **self** (`этап мал → читаю сам`). Run `/prime`, including the domain map, and scout the stage yourself.
 4. **Ground before code.** Run-file present → read it: per-file coordinates, `[[id]]` notes (`get_notes`, one batched call), entities, plus the `## Grounding` `### Спецификации` pointers the stage needs. Self-read stage → ground from the `## Grounding` block (`### Спецификации` pointers and `get_notes` on the `### Память` `[[id]]`) and your quick scout. Report the status line.
@@ -82,6 +82,35 @@ Each search tied to a discrete unit of work reports a one-line status in chat: `
 - End-to-end testing is its own plan tied to user stories, not part of a feature plan.
 - A stage ends only when the full project test suite passes — no failing or skipped test carries into `/step-done`.
 
+### Development mode overlay
+
+The stage's `## Режим разработки` marker selects the writing discipline — `standard` (the default, also when the marker is absent), `tdd`, or `ui`:
+
+- **standard** — the normal flow: the full Testing Discipline above, code and its tests written together in the stage, with no strict test-first ordering on new functionality. The bug-fix Red-Green rule still holds — it belongs to the Testing Discipline, not to this overlay.
+- **tdd** — adds the strict Red-Green-Refactor overlay below, generalizing the bug-fix Red-Green to all new functionality.
+- **ui** — overlay off: the stage is exploratory UI or markup where a test cannot precede the code, proved by the UI validation branch (`/validate`) on its linked story instead.
+
+Under the `tdd` overlay the order is strict, one failing test at a time:
+
+- **Red** — write a single failing test for the next required behavior; run it and confirm it fails for the intended reason.
+- **Green** — write the minimal code that makes it pass, no more than the test demands.
+- **Refactor** — an explicit third phase while green: remove duplication and clarify names with the suite as the safety net.
+
+The `tdd` overlay generalizes the bug-fix Red-Green above to all new functionality; everything else in this section — against requirements, unit vs feature, state-machine coverage, failure paths — is inherited unchanged by every mode.
+
 ## Working notes discipline
 
 `## Рабочие заметки` in the step file records only the struggle and the decisions: what was tried, why it failed, which new invariant surfaced. A retelling of the diff is forbidden — "renamed the variable", "extracted a method". The code is in git; these notes keep the residue git cannot show.
+
+## Interaction mode
+
+Attended or autonomous — whether the stage may block on the user — set by the
+invocation channel and orthogonal to Code Mode: an inline `/work` is attended; a
+`/work` spawned as a subagent is always autonomous.
+
+- **attended** — when in doubt, ask the user before proceeding.
+- **autonomous** — never block on a question. An obvious default or settled
+  best-practice is decided in place and logged to `## Рабочие заметки`; a choice
+  that needs a human — a deferred mock, an unresolved blocker — is carried back
+  to the spawning parent as a pointer in the return, never asked as a blocking
+  question.
