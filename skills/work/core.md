@@ -328,14 +328,31 @@ explicit solution is clearer.
 
 ## Testing discipline
 
-- Tests are mandatory, written in the same stage as the functionality, part of
-  its Definition of done.
+Tests are mandatory, written in the same stage as the functionality, part of
+its Definition of done. Two filters, in order: **relevance** (worth a test, and
+at what level), then **completeness** (cover the target fully).
+
+### Relevance — what earns a test
+
+- **Presumption of test.** New code is tested by default; a skip is an explained
+  exception in `## Рабочие заметки`, never silent. Legitimate: not soundly
+  testable (exploratory UI → `ui` mode, proved by `/validate`); no behavior of
+  ours (migration-only, rename, config). Logic inside such an edit — a data
+  transform in a migration — is still tested.
+- **Level decides, not the keyword.** Unit tests our logic in isolation; feature
+  tests our usage scenarios. One subject splits by level: validation through
+  framework `fillable`/casts is framework behavior, out of bounds; validation in
+  a feature test — the rule fires, auth blocks — is our contract, in bounds.
+- **Must-Not — framework behavior in isolation.** Do not test `fillable`/
+  `guarded`, casts, a relation's bare presence, default CRUD, proxy accessors. A
+  feature check that our contract holds is not this case.
+
+### Completeness — cover the chosen target
+
 - Tests are written against the requirements, not the written code. If the code
   disagrees with the intended behavior, the test fails and the code is wrong.
-- **Unit vs Feature.** Unit tests for isolated algorithms and DTOs; feature
-  (functional) tests for usage scenarios.
 - **State-Machine & Flow Coverage.** For feature tests of multi-step flows
-  (wizards, pipelines) the happy path alone is forbidden. Cover state
+  (wizards, pipelines) coverage is not limited to the happy path. Cover state
   transitions, steps back, repeated calls, and attempts to enter invalid
   states.
 - **Test Strategy Doc.** Before a complex feature test, briefly document — in a
@@ -374,9 +391,8 @@ Under the `tdd` overlay the order is strict, one failing test at a time:
   clarify names with the suite as the safety net.
 
 The `tdd` overlay generalizes the bug-fix Red-Green above to all new
-functionality; everything else in this section — against requirements, unit vs
-feature, state-machine coverage, failure paths — is inherited unchanged by every
-mode.
+functionality; everything else in this section is inherited
+unchanged by every mode.
 
 ## Working notes discipline
 

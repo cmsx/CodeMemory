@@ -1,6 +1,6 @@
 ---
 name: storyteller
-description: Convert an already-settled business need into a System-Aware User Story file under specs/product/user-stories/, where every step carries both its observable action and its under-the-hood system_reaction. Use only when explicitly invoked as /storyteller.
+description: Convert an already-settled business need into a System-Aware User Story file under specs/user-stories/, identified by a short stable id and named <id>-<slug>.md, where every step carries both its observable action and its under-the-hood system_reaction. Use only when explicitly invoked as /storyteller.
 ---
 
 # /storyteller — write a System-Aware User Story
@@ -19,19 +19,21 @@ Communicate with the user in Russian. Skill instructions are English — this do
 1. **Extract** from the dialogue: `actor`, `goal`, `precondition[]`, `steps[]`, `postcondition[]`, `negative_paths[]`, and the `related_entities` the story touches.
 2. **Map** each step to its system layer — the table written, the job dispatched, the service called: its `system_reaction`. A step carrying only the observable `action` is not yet a System-Aware step.
 3. **Validate** against the gate below.
-4. **Choose** the `<id>`: kebab-case derived from `goal`, unique under `specs/product/user-stories/`.
-5. **Write** the file to `specs/product/user-stories/<id>.md` from the template.
-6. **Report** the path written and any `<...>` placeholder left for the user.
+4. **Assign** the `<id>`: a 4-character `[a-z0-9]` token, mnemonic from `actor`/`goal`. Confirm it is free by globbing `specs/user-stories/**/<id>-*.md`; on a hit, regenerate.
+5. **Place and write** — pick the subfolder from the settled discussion (by feature or mechanism), or the root by default; never mirror `features/`. Derive `<slug>` as kebab-case from `goal`. Write the file to `specs/user-stories/<subfolder?>/<id>-<slug>.md` from the template.
+6. **Report** the path written, the assigned `<id>`, and any `<...>` placeholder left for the user.
 
 ## Validation — before writing
 
 - Every step holds both `action` and `system_reaction`, each non-empty. A step missing `system_reaction` is incomplete: derive it from the discussed system, or mark `<...>` and report it.
 - `related_entities` lists the domain entities the story touches.
-- `id` is kebab-case and not already taken under `specs/product/user-stories/`.
+- `<id>` is globally unique under `specs/user-stories/` (glob `**/<id>-*.md`); a collision forces regeneration.
 
 The file is written on the explicit signal that is the `/storyteller` invocation itself — no separate confirmation.
 
 ## Template
+
+File at `specs/user-stories/<subfolder?>/<id>-<slug>.md`:
 
 ```yaml
 ---
@@ -40,7 +42,7 @@ related_entities: [EntityA, EntityB]
 ---
 ```
 ```yaml
-id: <kebab-case-id>
+id: <4-char [a-z0-9] token>
 actor: <role>
 goal: <одно-два предложения>
 

@@ -159,8 +159,31 @@ When skills share a workflow and a `core.md`:
 - When the change is a `core.md` ressync — replace only the inlined slices
   that drifted from canon, do not rewrite the skill.
 
+## Terseness pass
+
+The "no illustrative examples / terse" rule is a write-time prohibition the
+author drops under generation pressure, and a bare "terse, ok" verdict is
+written without doing the work. Before declaring the review passed, walk the
+drafted or edited slice once and emit a ledger.
+
+List every element whose job is to **illustrate, justify, or restate** rather
+than instruct — an example, a rationale clause, a gloss. For each, one line:
+**keep** with its warrant, or **cut**. Warrants for keep, closed set:
+
+- structural form — template, command shape, URI/format skeleton;
+- pinned by a requirement — a decision or edge case mandating the example to
+  block a misreading;
+- disambiguates a genuinely tempting wrong reading the positive rule alone does
+  not exclude.
+
+No warrant → cut. No such element → the ledger reads "none". The unit is the
+illustrative element, not every parenthesis: a parenthetical naming a term or
+giving a format is structural, not a ledger entry.
+
 ## Review checklist
 
+- [ ] Terseness pass run: ledger of illustrate/justify/restate elements, each
+      kept-with-warrant or cut (or "none").
 - [ ] Description: what-it-does + explicit triggers, nothing else.
 - [ ] Frontmatter valid; closing `---` on its own line.
 - [ ] Style chosen consciously (procedural or judgment); form matches.

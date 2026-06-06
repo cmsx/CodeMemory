@@ -31,7 +31,7 @@ Walk these steps in order; the artifact of each is visible before the next, and 
 3. **Ground** any area not yet grounded this session — both sources, report the status line (below). On create, most grounding is already done in `/grill`; ground here only what the plan reaches that the discussion did not. On amend, a new tail is a fresh area — ground it as if planning from scratch.
 4. **Retrospective check** — test every new or changed stage against the three failures below.
 5. **Architecture block** — present it in chat, integrating any memory-driven decision through the Synthesis Form. On amend, the block justifies why the plan changes and how it relates to the closed stages.
-6. **Decompose** into stages, each one atomic meaningful commit, Tracer-Bullet slice by default (see Stage granularity). For each stage link the user stories it satisfies, set its gate strategy (see Stage gate contract), and set its development mode (see Stage development mode). On amend, re-decompose only not-yet-done stages, leaving `[x]` untouched.
+6. **Decompose** into stages, each one atomic meaningful commit, Tracer-Bullet slice by default (see Stage granularity). For each stage link the user stories it satisfies, set its gate strategy (see Stage gate contract), name its test targets in the Definition of done (see Stage test targets), and set its development mode (see Stage development mode). On amend, re-decompose only not-yet-done stages, leaving `[x]` untouched.
 7. **Write** the files (see Writing below).
 8. **Report** the prefix, the changed file list, and any open question left for the user. On amend of a `draft` with no active plan, make the activate offer here.
 
@@ -103,10 +103,16 @@ A stage = one atomic meaningful commit. Not "add an import", not "do the backend
 
 Every stage declares how it will be validated, in two sections the step file carries:
 
-- **`## Связанные истории`** — the `<id>` of the System-Aware User Stories under `specs/product/user-stories/` the stage must satisfy. Link a story whenever the stage delivers a user-facing slice it describes. The presence of a story is the gate selector — an invariant of the format, not a free choice.
+- **`## Связанные истории`** — the `<id>` of the System-Aware User Stories the stage must satisfy, linked by id (path-independent). Link a story whenever the stage delivers a user-facing slice it describes. The presence of a story is the gate selector — an invariant of the format, not a free choice.
 - **`## Стратегия гейта`** — derived from the stories, never chosen freely: no linked story → `test` (gate on the raw full-suite output); one or more → `e2e` plus a pointer to the project's launch mechanism and `precondition` seeding, without which the E2E gate cannot run.
 
 Leave both empty (`—`) only for a stage with no user-facing behavior — the same exception that justifies a backend-only cut.
+
+## Stage test targets
+
+Each stage names in its `## Definition of done` the behaviors that earn a test. Draw them from the stage's intended behavior: a linked story's `expected`/`system_reaction`, or the stage's `## Цель шага` when no story is linked. What earns a test is the `work` skill's Testing discipline relevance rule — point to it, do not restate the rule in the plan.
+
+A stage with no behavior of its own — migration-only, config, or an exploratory `ui` stage — declares that absence in the Definition of done, the justified exception its empty `## Связанные истории` (`—`) or `## Режим разработки: ui` already marks.
 
 ## Stage development mode
 
@@ -198,10 +204,10 @@ created: YYYY-MM-DD
 
 ## Definition of done
 - <Метрика успеха 1>
-- <Метрика успеха 2 (например, написан функциональный тест на смену статусов)>
+- <Тест-мишени: поведение этапа, достойное теста (из `expected`/`system_reaction` связанной истории или `## Цель шага`); этап без поведения — migration-only/config/`ui` — отметить исключение явно>
 
 ## Связанные истории
-<id историй из specs/product/user-stories/, которые этап обязан удовлетворить. Наличие хотя бы одной — селектор ветки гейта: пусто → тест-гейт; есть → E2E по истории. Это инвариант формата, а не украшение. Пусто — оставить «—».>
+<id историй, которые этап обязан удовлетворить (ссылка по id, путь не несущий). Наличие хотя бы одной — селектор ветки гейта: пусто → тест-гейт; есть → E2E по истории. Это инвариант формата, а не украшение. Пусто — оставить «—».>
 - <story-id>
 
 ## Стратегия гейта

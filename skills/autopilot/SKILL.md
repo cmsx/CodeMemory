@@ -31,7 +31,7 @@ Resume is free: a re-invoked `/autopilot` reads the checkboxes and starts from t
 
 ## Stage cycle
 
-Per stage, spawn the atomic skills as subagents, each passed `@<index-path>` and spawned on its model (Subagent models below), and read each verdict from its report text — never re-derive it. Branch selection — the gate strategy and the development mode — lives in the spawned skills, driven by the step file's `## Стратегия гейта` and `## Режим разработки` markers; pass the index and do not pre-select.
+Per stage, spawn the atomic skills as subagents, each passed `@<index-path>` and spawned on its model (Subagent models below), and read each verdict from its report text — never re-derive it. Branch selection — the gate strategy and the development mode — lives in the spawned skills, driven by the step file's `## Стратегия гейта` and `## Режим разработки` markers; pass the index and do not pre-select. Every spawn runs under the Spawn watchdog below.
 
 1. **Implement.** Spawn `/work` — it resolves the current stage, delegates its own `/prepare`, and writes code and tests to green in its context. Read its return pointer for any ambiguity it surfaced (Three-tier policy below).
 2. **Gate.** Spawn `/validate`. Read the verdict from `plans/<prefix>/step-<NN>.md`:
@@ -45,9 +45,17 @@ Per stage, spawn the atomic skills as subagents, each passed `@<index-path>` and
    - `inconclusive` → Tier C: stop and escalate with the report's gap.
 6. **Fix forward.** Spawn `/work` again — it fixes from the located coordinates in the current stage; a closed `[x]` stage is never rewound. Return to Gate under the same counter.
 
+## Spawn watchdog
+
+Every spawn in the stage cycle carries a deadline. Spawn in the background, set a wakeup for the deadline, and resume on whichever fires first.
+
+- **Deadline.** Set it per spawn from the step's weight, and err long — a needless kill costs the abort plus the restart's context reload, a needless wait costs only minutes.
+- **Resolve.** Subagent completes first → read its verdict and continue the cycle. Wakeup fires first with the report file absent → the spawn is hung: abort the subagent, record a timeout pass (one line in `## Журнал проходов`), run the Stop-brake check (below), and unless it halts, re-spawn the same step from its checkpoint.
+- **Abort on the event, not a hunch.** The abort fires on the deadline with the report file absent, never on a sense the run is stuck.
+
 ## Subagent models
 
-The model is set at the spawn — no atomic skill carries one of its own. Spawn each on its fixed model:
+Each atomic skill is run by a `general-purpose` subagent tasked with invoking the skill's slash command (`/work @<index>`, `/validate @<index>`, …) — the skill is the command the subagent runs, not an agent type. The model is set at the spawn — no atomic skill carries one of its own. Spawn each on its fixed model:
 
 - `/work` — Sonnet; Opus for an architecturally heavy stage, judged from the step file's scope and `## Grounding`.
 - `/validate` — Sonnet.
@@ -57,7 +65,7 @@ The model is set at the spawn — no atomic skill carries one of its own. Spawn 
 
 ## Stop-brake
 
-The counter is the visible artifact, not the orchestrator's memory: each non-green pass is one line in the current step file's `## Журнал проходов`. Before each new pass, read the section and count its lines — three passes without `green` halts the run and escalates to a human. The decision to stop is read from the file, not held in the head.
+The counter is the visible artifact, not the orchestrator's memory: each non-green pass is one line in the current step file's `## Журнал проходов` — a gate `defect` or a watchdog timeout. Before each new pass, read the section and count its lines — three passes without `green` halts the run and escalates to a human. The decision to stop is read from the file, not held in the head.
 
 ## Three-tier ambiguity policy
 
@@ -107,4 +115,8 @@ Write `plans/<prefix>/autopilot-report.md` when the run ends — after `/finaliz
 - Running the Tier-B/C search under attended instead of asking the human at once past Tier A.
 - Expecting a spawned subagent to block on a question — attended lives only at the orchestrator; a subagent has no human channel.
 - Inventing a resume marker or a pause state instead of resuming from the first unchecked stage.
+- Passing a skill name as the agent type (`agentType: work`) instead of tasking a `general-purpose` subagent to run the skill's slash command.
+- Spawning in the foreground with no deadline — a hung subagent stalls the run with no recovery.
+- Aborting a spawn on a hunch the run is stuck rather than on the deadline with the report file absent.
+- Re-spawning a timed-out step without recording its timeout pass — the deterministic hang loops past the stop-brake.
 - Starting on a plan that is not `active`, or doing planning work — autopilot runs execution only.

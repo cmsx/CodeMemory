@@ -35,6 +35,7 @@ Run the full project test suite. Capture its stdout/stderr verbatim — the raw 
 
 Gate on the linked System-Aware Stories, driven through a browser (Playwright). This is also the UI validation branch a `ui`-mode stage relies on for proof.
 
+- **Resolve.** Each linked `<id>` → its story file by glob `specs/user-stories/**/<id>-*.md`. No match → verdict `blocked` with the missing `<id>`.
 - **Launch dependency.** The E2E gate needs the application launched and each story's `precondition` seeded. Take the launch mechanism from `## Стратегия гейта`. Mechanism absent, app unreachable, or `precondition` unseedable → verdict `blocked` with the precise reason; never judge around a gate that could not run.
 - **Coverage.** Drive every linked story through all its steps and every `negative_path` — the happy path alone is forbidden. Capture a screenshot at each observed `expected`.
 - **Observation/verdict split.** Per story the report carries two separate blocks: «Что видно на экране» — a neutral transcription of what was observed, no judgment; «Соответствие expected» — the verdict mapping each observation to the story's `expected` and `system_reaction`. The split lets the orchestrator trust the verdict from the text alone and never load the screenshots.

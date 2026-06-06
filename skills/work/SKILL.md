@@ -72,10 +72,18 @@ Each search tied to a discrete unit of work reports a one-line status in chat: `
 
 ## Testing discipline
 
-- Tests are mandatory, written in the same stage as the functionality, part of its Definition of done.
+Tests are mandatory, written in the same stage as the functionality, part of its Definition of done. Two filters, in order: **relevance** (worth a test, and at what level), then **completeness** (cover the target fully).
+
+### Relevance — what earns a test
+
+- **Presumption of test.** New code is tested by default; a skip is an explained exception in `## Рабочие заметки`, never silent. Legitimate: not soundly testable (exploratory UI → `ui` mode, proved by `/validate`); no behavior of ours (migration-only, rename, config). Logic inside such an edit — a data transform in a migration — is still tested.
+- **Level decides, not the keyword.** Unit tests our logic in isolation; feature tests our usage scenarios. One subject splits by level: validation through framework `fillable`/casts is framework behavior, out of bounds; validation in a feature test — the rule fires, auth blocks — is our contract, in bounds.
+- **Must-Not — framework behavior in isolation.** Do not test `fillable`/`guarded`, casts, a relation's bare presence, default CRUD, proxy accessors. A feature check that our contract holds is not this case.
+
+### Completeness — cover the chosen target
+
 - Tests are written against the requirements, not the written code. If the code disagrees with the intended behavior, the test fails and the code is wrong.
-- **Unit vs Feature.** Unit tests for isolated algorithms and DTOs; feature (functional) tests for usage scenarios.
-- **State-Machine & Flow Coverage.** For feature tests of multi-step flows (wizards, pipelines) the happy path alone is forbidden. Cover state transitions, steps back, repeated calls, and attempts to enter invalid states.
+- **State-Machine & Flow Coverage.** For feature tests of multi-step flows (wizards, pipelines) coverage is not limited to the happy path. Cover state transitions, steps back, repeated calls, and attempts to enter invalid states.
 - **Test Strategy Doc.** Before a complex feature test, briefly document — in a docblock or `## Рабочие заметки` — which states and transitions it will cover.
 - **Red-Green.** A bug fix starts with a failing test that catches the wrong behavior, then the fix. Never fix first.
 - Cover failure paths, not only the happy path — network errors, missing artifacts, invalid input, permission denials.
@@ -96,7 +104,7 @@ Under the `tdd` overlay the order is strict, one failing test at a time:
 - **Green** — write the minimal code that makes it pass, no more than the test demands.
 - **Refactor** — an explicit third phase while green: remove duplication and clarify names with the suite as the safety net.
 
-The `tdd` overlay generalizes the bug-fix Red-Green above to all new functionality; everything else in this section — against requirements, unit vs feature, state-machine coverage, failure paths — is inherited unchanged by every mode.
+The `tdd` overlay generalizes the bug-fix Red-Green above to all new functionality; everything else in this section — relevance, against requirements, level, state-machine coverage, failure paths — is inherited unchanged by every mode.
 
 ## Working notes discipline
 
