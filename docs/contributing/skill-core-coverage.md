@@ -285,6 +285,7 @@
 - [ ] Текущий шаг = первый без `[x]`; цикл по этапам до пустого остатка, затем `/finalize` (work: Key invariants)
 - [ ] Управляющий цикл: `work→validate→[diagnose→work fix-forward]→step-done`, повтор, `finalize` (index: DoD)
 - [ ] Спавн атомарных скиллов субагентами с передачей `@<index-path>`; `/prepare` делегируется внутри `/work`, отдельно не спавнится (work: Delegation)
+- [ ] Subagent models: модель задаётся при спавне (скиллы фронтматтерной модели не несут); `work`=Sonnet/Opus-по-тяжести этапа, `validate`=Sonnet, `step-done`/`diagnose`/`finalize`=Opus (autopilot: Subagent models)
 - [ ] Ветка work/validate не выбирается оркестратором — живёт в спавнимых скиллах по маркерам `## Стратегия гейта`/`## Режим разработки` (blueprint: Stage gate contract; formats.md; index: DoD)
 - [ ] Вердикт `/validate` читается из текста отчёта (`green`/`defect`/`blocked`); green→step-done, blocked→Tier C (validate: Verdict)
 - [ ] Вердикт `/diagnose` читается из текста отчёта (`located`/`inconclusive`); located→fix-forward, inconclusive→Tier C (diagnose: Verdict)

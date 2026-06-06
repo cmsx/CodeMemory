@@ -31,7 +31,7 @@ Resume is free: a re-invoked `/autopilot` reads the checkboxes and starts from t
 
 ## Stage cycle
 
-Per stage, spawn the atomic skills as subagents, each passed `@<index-path>`, and read each verdict from its report text — never re-derive it. Branch selection — the gate strategy and the development mode — lives in the spawned skills, driven by the step file's `## Стратегия гейта` and `## Режим разработки` markers; pass the index and do not pre-select.
+Per stage, spawn the atomic skills as subagents, each passed `@<index-path>` and spawned on its model (Subagent models below), and read each verdict from its report text — never re-derive it. Branch selection — the gate strategy and the development mode — lives in the spawned skills, driven by the step file's `## Стратегия гейта` and `## Режим разработки` markers; pass the index and do not pre-select.
 
 1. **Implement.** Spawn `/work` — it resolves the current stage, delegates its own `/prepare`, and writes code and tests to green in its context. Read its return pointer for any ambiguity it surfaced (Three-tier policy below).
 2. **Gate.** Spawn `/validate`. Read the verdict from `plans/<prefix>/step-<NN>.md`:
@@ -44,6 +44,16 @@ Per stage, spawn the atomic skills as subagents, each passed `@<index-path>`, an
    - `located` → it carries the fix-forward coordinates.
    - `inconclusive` → Tier C: stop and escalate with the report's gap.
 6. **Fix forward.** Spawn `/work` again — it fixes from the located coordinates in the current stage; a closed `[x]` stage is never rewound. Return to Gate under the same counter.
+
+## Subagent models
+
+The model is set at the spawn — no atomic skill carries one of its own. Spawn each on its fixed model:
+
+- `/work` — Sonnet; Opus for an architecturally heavy stage, judged from the step file's scope and `## Grounding`.
+- `/validate` — Sonnet.
+- `/step-done` — Opus.
+- `/diagnose` — Opus.
+- `/finalize` — Opus.
 
 ## Stop-brake
 
