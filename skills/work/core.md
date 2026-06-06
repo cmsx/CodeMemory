@@ -366,6 +366,18 @@ at what level), then **completeness** (cover the target fully).
 - A stage ends only when the full project test suite passes — no failing or
   skipped test carries into `/step-done`.
 
+### Isolation & self-positioning
+
+- **Framework isolation.** Reset environment state between tests through the
+  framework's own mechanism (`RefreshDatabase`, transactional rollback), and
+  confirm the test under work actually opts into it — not a hand-written
+  teardown.
+- **Self-positioning assertions.** Measure the baseline, then assert the delta
+  or invariant the operation produces, so the test fails on its own behavior and
+  never on residue from another test. Reserve an assertion on a concrete
+  absolute state for the case that needs it, named as an exception in
+  `## Рабочие заметки`.
+
 ### Development mode overlay
 
 The stage's `## Режим разработки` marker selects the writing discipline —

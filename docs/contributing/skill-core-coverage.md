@@ -204,6 +204,8 @@
 - [ ] Red-Green при багфиксе (work: Testing discipline)
 - [ ] Development mode overlay: маркер `## Режим разработки` — три значения (`standard`/пусто → обычный поток без строгого test-first; `tdd` → жёсткий Red-Green-Refactor на всю новую функциональность; `ui` → выкл/UI-ветка), наследование Testing Discipline (incl. relevance) всеми режимами (work: Testing discipline — Development mode overlay)
 - [ ] Failure paths, не только happy (work: Testing discipline)
+- [ ] Isolation & self-positioning — Framework isolation: сброс состояния штатным механизмом фреймворка между тестами, тест подключает его, не ручной teardown (work: Testing discipline — Isolation & self-positioning)
+- [ ] Isolation & self-positioning — Self-positioning assertions: замер baseline + проверка дельты/инварианта, падение на своём поведении; опора на абсолютное состояние — обоснованное исключение в `## Рабочие заметки` (work: Testing discipline — Isolation & self-positioning)
 - [ ] Шаг завершается только при зелёном полном прогоне (work: Testing discipline)
 - [ ] Working notes discipline — борьба и решения, не пересказ диффа (work: Working notes)
 - [ ] `rename_anchor` при переименовании символа/файла (mem: rename_anchor contract)
