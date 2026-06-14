@@ -8,7 +8,7 @@ description: Runs the current /work stage's gate and reports a verdict backed by
 Verification Mode. Run the current stage's gate and report the verdict against unfakeable artifacts: raw test output, or E2E screenshots plus an observation/verdict split per linked story. The gate is observed and reported, never the code fixed — defects route back to `/work`, root-cause to `/diagnose`.
 
 ### Verification Mode — gate
-Run the stage's gate and report the result against fixed artifacts. Forbidden: generating or fixing code, editing specs, plans, notes, or stories; rendering a verdict not backed by a raw artifact.
+Run the stage's gate and report the result against fixed artifacts. Forbidden: generating or fixing code, editing specs, plans, notes, or stories; investigating or root-causing a defect (that is `/diagnose`'s); rendering a verdict not backed by a raw artifact.
 
 Communicate with the user in Russian. Write the report in Russian. Skill instructions are English — this does not change the output language.
 
@@ -20,8 +20,8 @@ Interaction mode follows the same channel — inline is attended, a spawned run 
 
 ## Behavior
 
-1. Resolve the plan: `@<path>` → that index; no argument → the single `plans/*-00-index.md` with `status: active`. None or several active without an argument → refuse, report, ask for `@<path>`. Read the index in full.
-2. The current stage = the first one without `[x]` in `## Этапы`. Read its `<prefix>-NN-<slug>.md` step file in full: `## Цель шага`, `## Definition of done`, `## Связанные истории`, `## Стратегия гейта`.
+1. Resolve the plan: `@<path>` → that index; no argument → the single `plans/*-00-index.md` with `status: active`. None or several active without an argument → refuse, report, ask for `@<path>`. An explicit stage suffix `@<index>#NN` pins stage NN — gate it and only it, never re-resolve from the checkboxes. Read the index in full.
+2. The current stage = the pinned `#NN` when the invocation carries one, else the first without `[x]` in `## Этапы`. Read its `<prefix>-NN-<slug>.md` step file in full: `## Цель шага`, `## Definition of done`, `## Связанные истории`, `## Стратегия гейта`.
 3. Select the branch from `## Стратегия гейта` — `test` → test branch, `e2e` → E2E branch. The value is derived from `## Связанные истории` (no story → `test`, one or more → `e2e`); cross-check it against story presence and report a mismatch instead of guessing.
 4. Run the selected branch (below) and capture its unfakeable artifact.
 5. Write the report to `plans/<prefix>/step-<NN>.md` (template below). Save E2E screenshots under `plans/<prefix>/screenshots/`, each filename prefixed `step-<NN>-` so passes of different stages never collide.
@@ -29,7 +29,7 @@ Interaction mode follows the same channel — inline is attended, a spawned run 
 
 ## Test branch
 
-Run the full project test suite. Capture its stdout/stderr verbatim — the raw run, never a retelling. All green → `green`. Any failing or skipped test → `defect`, the failing output carried into the report's `## Дефект`.
+Run the full project test suite once; that run is the verdict. Capture its stdout/stderr verbatim — the raw run, never a retelling. All green → `green`. Any failing or skipped test → `defect`, the failing output carried into the report's `## Дефект`. A failure that looks flaky or order-dependent is itself the `defect`, carried raw — not chased across reruns; localizing it is `/diagnose`'s.
 
 ## E2E branch
 

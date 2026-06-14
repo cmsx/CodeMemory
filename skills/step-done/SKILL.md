@@ -16,8 +16,8 @@ Communicate with the user in Russian. Write all plan files and notes in Russian.
 
 ## Behavior
 
-1. Resolve the plan: `@<path>` → that index; no argument → the single `plans/*-00-index.md` with `status: active`. None or several active without an argument → refuse, report, ask for `@<path>`. Read the index in full.
-2. The current stage = the first one without `[x]` in `## Этапы` — the one just executed. Read its `<prefix>-NN-<slug>.md` step file in full: `## Рабочие заметки`, `## Definition of done`, `## Подзадачи`.
+1. Resolve the plan: `@<path>` → that index; no argument → the single `plans/*-00-index.md` with `status: active`. None or several active without an argument → refuse, report, ask for `@<path>`. An explicit stage suffix `@<index>#NN` pins stage NN — close it and only it, never re-resolve from the checkboxes. Read the index in full.
+2. The current stage = the pinned `#NN` when the invocation carries one, else the first without `[x]` in `## Этапы` — the one just executed. Read its `<prefix>-NN-<slug>.md` step file in full: `## Рабочие заметки`, `## Definition of done`, `## Подзадачи`.
 3. Confirm the stage is actually finished — sub-tasks `[x]`, Definition of done met, the full test suite green per the `/work` contract. **Then gate test quality** against the `work` skill's Testing discipline relevance rule: the stage's tests pin our behavior, and each change left untested carries its skip rationale in `## Рабочие заметки` — unless the stage pre-declares no behavior of its own via `## Связанные истории: —` or `## Режим разработки: ui`. Not finished, or the gate fails → report the gap and stop; do not close it.
 4. **Classify** the working notes (trajectory below) — the routing list.
 5. **Capture** each ADR-worthy item via `/mem`, collecting its `[[id]]`.

@@ -31,7 +31,7 @@ A partial map — first two files skimmed, first hits dumped — is worse than n
 
 ## Plan resolution
 
-`@<path>` → that index. No argument → the single `plans/*-00-index.md` with `status: active`. None or several active without an argument → refuse, report, ask for `@<path>`. A spawning `/work` passes the index path. The current stage is the first without `[x]` in `## Этапы`.
+`@<path>` → that index. No argument → the single `plans/*-00-index.md` with `status: active`. None or several active without an argument → refuse, report, ask for `@<path>`. An explicit stage suffix `@<index>#NN` pins stage NN — scout it and only it, never re-resolve from the checkboxes; a spawning `/work` passes the pinned stage. Without a suffix the current stage is the first without `[x]` in `## Этапы`.
 
 ## Search contract
 

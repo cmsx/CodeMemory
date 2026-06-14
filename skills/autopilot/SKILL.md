@@ -20,7 +20,7 @@ Communicate with the user in Russian. Write all plan files and the report in Rus
 
 ## Run mode
 
-The run is **walk-away** by default, **attended** on an explicit `attended` mode word (`/autopilot attended` — a positional token, distinct from the `@<index>` argument and order-independent with it). Attended is the orchestrator's alone — it holds the channel to the human. Every spawned skill runs autonomous by channel regardless: a subagent has no human to block on, so it takes its best acceptable default and returns a pointer for anything it cannot resolve. The orchestrator passes only `@<index>`; the autonomous contract rides the spawn, not the run mode.
+The run is **walk-away** by default, **attended** on an explicit `attended` mode word (`/autopilot attended` — a positional token, distinct from the `@<index>` argument and order-independent with it). Attended is the orchestrator's alone — it holds the channel to the human. Every spawned skill runs autonomous by channel regardless: a subagent has no human to block on, so it takes its best acceptable default and returns a pointer for anything it cannot resolve. The orchestrator passes the pinned stage `@<index>#NN`, not the run mode; the autonomous contract rides the spawn.
 
 The mode gates how an ambiguity past Tier A is met:
 
@@ -31,7 +31,7 @@ Resume is free: a re-invoked `/autopilot` reads the checkboxes and starts from t
 
 ## Stage cycle
 
-Per stage, spawn the atomic skills as subagents, each passed `@<index-path>` and spawned on its model (Subagent models below), and read each verdict from its report text — never re-derive it. Branch selection — the gate strategy and the development mode — lives in the spawned skills, driven by the step file's `## Стратегия гейта` and `## Режим разработки` markers; pass the index and do not pre-select. Every spawn runs under the Spawn watchdog below and kicks the keep-alive watchdog (below).
+Per stage, spawn the atomic skills as subagents, each passed the pinned stage `@<index>#NN` (the current stage's number) and spawned on its model (Subagent models below), and read each verdict from its report text — never re-derive it. The pin is the orchestrator's: it owns the run position, so the spawn names the stage and the subagent never re-resolves it. Branch selection — the gate strategy and the development mode — lives in the spawned skills, driven by the step file's `## Стратегия гейта` and `## Режим разработки` markers; pass the index and do not pre-select. Every spawn runs under the Spawn watchdog below and kicks the keep-alive watchdog (below).
 
 1. **Implement.** Spawn `/work` — it resolves the current stage, delegates its own `/prepare`, and writes code and tests to green in its context. Read its return pointer for any ambiguity it surfaced (Three-tier policy below).
 2. **Gate.** Spawn `/validate`. Read the verdict from `plans/<prefix>/step-<NN>.md`:
@@ -67,7 +67,7 @@ A run can outlive the orchestrator's own context — it hangs or exhausts its wi
 
 ## Subagent models
 
-Each atomic skill is run by a `general-purpose` subagent tasked with invoking the skill's slash command (`/work @<index>`, `/validate @<index>`, …) — the skill is the command the subagent runs, not an agent type. The model is set at the spawn — no atomic skill carries one of its own. Spawn each on its fixed model:
+Each atomic skill is run by a `general-purpose` subagent tasked with invoking the skill's slash command on the pinned stage (`/work @<index>#NN`, `/validate @<index>#NN`, …) — the skill is the command the subagent runs, not an agent type. The model is set at the spawn — no atomic skill carries one of its own. Spawn each on its fixed model:
 
 - `/work` — Sonnet; Opus for an architecturally heavy stage, judged from the step file's scope and `## Grounding`.
 - `/validate` — Sonnet.
@@ -132,6 +132,7 @@ The bare form, resolving the single `active` plan, is a human's first invocation
 - A bare `/autopilot` as the keep-alive wakeup payload — a fire after the run ends would re-resolve `single active` onto a different plan; the payload is always the bound `@<index>`.
 - Standing up a separate heartbeat machine beside the Spawn watchdog instead of reusing its per-spawn wakeup for keep-alive.
 - Passing a skill name as the agent type (`agentType: work`) instead of tasking a `general-purpose` subagent to run the skill's slash command.
+- Spawning a stage skill without the `#NN` pin — the subagent re-resolves "first unchecked" and drifts onto another stage if a checkbox moved.
 - Spawning in the foreground with no deadline — a hung subagent stalls the run with no recovery.
 - Aborting a spawn on a hunch the run is stuck rather than on the deadline with the report file absent.
 - Re-spawning a timed-out step without recording its timeout pass — the deterministic hang loops past the stop-brake.

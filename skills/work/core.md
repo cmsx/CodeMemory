@@ -26,6 +26,14 @@ ahead (start coding mid-discussion) because the active skill holds no such
 instructions. State passes between atomic skills through the plan files — the
 plan is the data bus across sessions.
 
+Each skill ends at its own terminal artifact and performs no terminal act of a
+neighbor: it does not tick the stage box, write a gate verdict, capture to
+memory, or root-cause a defect outside its lane. The shared position pointer —
+the `## Этапы` checkbox — has a single writer; a skill spawned for a stage works
+the stage it was handed and never re-aims to another. Naming the next phase as
+something to "advance to" plants it: a skill states its own terminal artifact
+and the hand-off of control, not the downstream skill as a goal.
+
 ## Plan lifecycle and status
 
 A plan's `status` frontmatter takes one of three values:
@@ -204,7 +212,7 @@ Division of labor:
 A stage's reconnaissance is heavy — a wide fan-out of search and full reading.
 `/work` delegates it to a subagent by default: reaching a stage with no current
 run-file, it spawns a general-purpose subagent on the Sonnet model and tasks it
-with invoking `/prepare` (passing the plan index path); the subagent runs the
+with invoking `/prepare` on the pinned stage (`@<index>#NN`); the subagent runs the
 skill — `prepare` is not an agent type — writes the run-file, and returns. The
 heavy load burns in the disposable context while `/work`'s stays clean. Only a clearly small stage — one `/work` can cover
 with a quick read itself — skips delegation. Either way `/work` states the
@@ -267,12 +275,18 @@ Never capture mid-stage, and never put plan-process metadata into memory.
    Resolving the plan for a command that takes an optional `@<path>`: `@<path>`
    → that index; no argument → the single `plans/*-00-index.md` with
    `status: active`; none or several active without an argument → refuse,
-   report, ask for `@<path>`.
+   report, ask for `@<path>`. An explicit stage suffix `@<index>#NN` pins stage
+   NN as authoritative: the command works that stage and never re-resolves from
+   the checkboxes — an orchestrator hands its spawn the pinned stage, and the
+   pin overrides any disagreement with the checkbox state. Without a suffix the
+   current stage is the first without `[x]` (invariant 4).
 2. Flat `plans/`, no subfolders. File names `<prefix>-NN-<slug>.md`: `<prefix>`
    3–4 letters, `NN` two digits with leading zero (`00` = index).
 3. `plans/` is gitignored. Source of truth is `specs/`, which is committed.
 4. Progress = checkboxes in the index. The first stage without `[x]` is
-   current. Sub-task checkboxes in step files allow resuming.
+   current. The `[x]` tick in `## Этапы` is written by `/step-done` alone, as
+   its terminal act; no other command edits it. Sub-task checkboxes in step
+   files allow resuming.
 5. Files are written only on an explicit signal. `/grill` never writes —
    only `/blueprint`, `/storyteller`, and the closing commands do.
 6. Spec lives in `specs/`. Fixed path.

@@ -36,7 +36,7 @@ The fix is forward, in the current stage — Red-Green closes the hole for good.
 
 ## Plan resolution
 
-`@<path>` → that index. No argument → the single `plans/*-00-index.md` with `status: active`. None or several active without an argument → refuse, report, ask for `@<path>`. A spawning `/autopilot` passes the index path. The current stage is the first without `[x]` in `## Этапы`.
+`@<path>` → that index. No argument → the single `plans/*-00-index.md` with `status: active`. None or several active without an argument → refuse, report, ask for `@<path>`. An explicit stage suffix `@<index>#NN` pins stage NN — diagnose it and only it, never re-resolve from the checkboxes; a spawning `/autopilot` passes the pinned stage. Without a suffix the current stage is the first without `[x]` in `## Этапы`.
 
 ## Verdict
 
