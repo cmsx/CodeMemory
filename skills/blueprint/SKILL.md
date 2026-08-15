@@ -137,7 +137,7 @@ The index holds a `## Grounding` block persisting both watershed sources; `/work
 ## Prefix and file invariants
 
 - **Prefix** — 3–4 letters derived from the feature name, lowercase, unique among existing `plans/*-00-index.md`.
-- Flat `plans/`, no subfolders. File names `<prefix>-NN-<slug>.md`: `NN` two digits with leading zero, `00` = index.
+- Plan files sit flat in `plans/`, named `<prefix>-NN-<slug>.md`: `NN` two digits with leading zero, `00` = index. Per-step scaffolding (run-files, gate/diagnose/autopilot reports, screenshots) lives in the per-plan subfolder `plans/<prefix>/`.
 - `plans/` is gitignored; the source of truth is the committed `specs/`.
 - Progress = checkboxes in the index. The first stage without `[x]` is current. Step files carry sub-task checkboxes for resuming.
 

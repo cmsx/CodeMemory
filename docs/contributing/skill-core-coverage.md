@@ -161,7 +161,7 @@
 - [ ] Stage gate contract: линковка историй по `<id>` (путь не несущий) + стратегия гейта, производная от наличия истории (селектор-инвариант, не свободный маркер) (formats.md; blueprint)
 - [ ] Stage test targets: называние тест-мишеней этапа в DoD (из `expected`/`system_reaction` истории или `## Цель шага`), указатель на relevance-канон `work`, без копии; этап без поведения — пред-declare исключения (blueprint)
 - [ ] Stage development mode: проставление `## Режим разработки` — авторский выбор из трёх (`standard` дефолт, `tdd`, `ui`), не производное от историй и независимое от гейта (formats.md; blueprint)
-- [ ] Key invariants: flat `plans/`, имена `<prefix>-NN-<slug>`, gitignored, чекбоксы (work: Key invariants)
+- [ ] Key invariants: плоские файлы плана в `plans/` + per-step леса в подпапке `plans/<prefix>/`, имена `<prefix>-NN-<slug>`, gitignored, чекбоксы (work: Key invariants)
 - [ ] Шаблоны index + step заинлайнены; step несёт секции трека `/autopilot`: авторские при создании плана (Связанные истории, Стратегия гейта, Режим разработки) + стабы `/autopilot` (Журнал проходов, Отложенные решения) (work: Templates; formats.md)
 - [ ] Question style; confirm prefill «да» для offer-activate (work: Question style)
 

@@ -280,8 +280,11 @@ Never capture mid-stage, and never put plan-process metadata into memory.
    the checkboxes — an orchestrator hands its spawn the pinned stage, and the
    pin overrides any disagreement with the checkbox state. Without a suffix the
    current stage is the first without `[x]` (invariant 4).
-2. Flat `plans/`, no subfolders. File names `<prefix>-NN-<slug>.md`: `<prefix>`
-   3–4 letters, `NN` two digits with leading zero (`00` = index).
+2. Plan **files** — the index and step files — sit flat in `plans/`, named
+   `<prefix>-NN-<slug>.md`: `<prefix>` 3–4 letters, `NN` two digits with leading
+   zero (`00` = index). Per-step scaffolding — the run-file, the gate and
+   diagnose reports, the autopilot report, screenshots — lives in the per-plan
+   subfolder `plans/<prefix>/`, created by the first artifact written there.
 3. `plans/` is gitignored. Source of truth is `specs/`, which is committed.
 4. Progress = checkboxes in the index. The first stage without `[x]` is
    current. The `[x]` tick in `## Этапы` is written by `/step-done` alone, as
